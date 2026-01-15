@@ -73,11 +73,12 @@ export class NpmAdapter implements EcosystemAdapter {
 
     // Try to fetch additional data from GitHub API if repository URL exists
     if (links.repository) {
-      try {
-        const githubRepo = await this.githubClient.fetchRepository(
-          links.repository,
-        );
+      const githubRepo = await this.githubClient.fetchRepository(
+        links.repository,
+      );
 
+      // Only update stats if GitHub API returned data
+      if (githubRepo !== null) {
         stats.stars = githubRepo.stargazers_count;
         stats.forks = githubRepo.forks_count;
         stats.openIssues = githubRepo.open_issues_count;
@@ -95,12 +96,11 @@ export class NpmAdapter implements EcosystemAdapter {
           homepageUrl: githubRepo.homepage || "",
         };
 
+        // Fetch README only if we got repo data
         const readme = await this.githubClient.fetchReadme(links.repository);
         if (readme) {
           stats.github.readme = this.base64ToString(readme.content);
         }
-      } catch (error) {
-        console.warn("Failed to fetch GitHub data:", error);
       }
     }
 
