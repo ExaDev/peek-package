@@ -59,10 +59,20 @@ export function usePackageComparison(packageNames: string[]) {
     .map((result) => result.error)
     .filter((err): err is Error => err != null);
 
+  // Track which packages failed to load (not found or error)
+  const failedPackages: string[] = results
+    .map((result, index) => ({
+      name: packageNames[index],
+      failed: result.isError && !result.isLoading,
+    }))
+    .filter((item) => item.failed)
+    .map((item) => item.name);
+
   return {
     isLoading,
     isError,
     errors,
     packages,
+    failedPackages,
   };
 }

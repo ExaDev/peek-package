@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { notifications } from "@mantine/notifications";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
 import type { PackageColumnState } from "@/hooks/usePackageColumn";
 import type { ViewMode } from "@/types/views";
@@ -68,8 +70,40 @@ export function PackageComparisonLayout({
   const packageNames = packageColumns.map((pkg) => pkg.packageName);
 
   // Fetch package data
-  const { isLoading, packages: packagesData } =
-    usePackageComparison(packageNames);
+  const {
+    isLoading,
+    packages: packagesData,
+    failedPackages,
+  } = usePackageComparison(packageNames);
+
+  // Track which packages we've already removed to avoid duplicate notifications
+  const removedPackagesRef = useRef<Set<string>>(new Set());
+
+  // Auto-remove packages that don't exist
+  useEffect(() => {
+    failedPackages.forEach((failedName) => {
+      // Skip if we've already processed this package
+      if (removedPackagesRef.current.has(failedName)) {
+        return;
+      }
+
+      // Find the package column by name
+      const failedColumn = packageColumns.find(
+        (col) => col.packageName === failedName,
+      );
+
+      if (failedColumn) {
+        removedPackagesRef.current.add(failedName);
+        removePackage(failedColumn.id);
+
+        notifications.show({
+          title: "Package not found",
+          message: `"${failedName}" was removed from comparison`,
+          color: "red",
+        });
+      }
+    });
+  }, [failedPackages, packageColumns, removePackage]);
 
   // Calculate winner metrics
   const validPackages = packagesData.filter((pkg) =>
