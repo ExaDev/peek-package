@@ -235,16 +235,16 @@ export function PackageMetricsPanel({
               </Text>
             </Group>
 
-            {/* More npm Stats Accordion */}
+            {/* Additional npm Stats Accordion */}
             {((packageStats.npm?.devDependencies.length ?? 0) > 0 ||
               (packageStats.npm
                 ? Object.keys(packageStats.npm.peerDependencies).length
                 : 0) > 0 ||
               hasKeywords) && (
               <Accordion variant="filled" radius="sm" mt="xs">
-                <Accordion.Item value="more-npm">
+                <Accordion.Item value="npm-details">
                   <Accordion.Control>
-                    <Text size="xs">More</Text>
+                    <Text size="xs">Dependencies & Keywords</Text>
                   </Accordion.Control>
                   <Accordion.Panel>
                     <Stack gap="xs">
@@ -413,12 +413,12 @@ export function PackageMetricsPanel({
               </Group>
             )}
 
-            {/* More GitHub Stats Accordion */}
+            {/* Additional GitHub Stats Accordion */}
             {packageStats.github && (
               <Accordion variant="filled" radius="sm" mt="xs">
-                <Accordion.Item value="more-github">
+                <Accordion.Item value="github-details">
                   <Accordion.Control>
-                    <Text size="xs">More</Text>
+                    <Text size="xs">Repository Details</Text>
                   </Accordion.Control>
                   <Accordion.Panel>
                     <Stack gap="xs">
