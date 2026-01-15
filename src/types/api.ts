@@ -55,6 +55,10 @@ export interface NpmsPackageResponse {
         to: string;
         count: number;
       }>;
+      contributors: Array<{
+        username: string;
+        commitsCount: number;
+      }>;
     };
   };
   evaluation: {

@@ -86,6 +86,13 @@ function createPackageDetails(
           isDisabled: false,
         },
         commits: [{ from: "2024-01-01", to: "2024-01-07", count: 10 }],
+        contributors: [
+          { username: "contributor1", commitsCount: Math.floor(stars / 100) },
+          { username: "contributor2", commitsCount: Math.floor(stars / 150) },
+          { username: "contributor3", commitsCount: Math.floor(stars / 200) },
+          { username: "contributor4", commitsCount: Math.floor(stars / 300) },
+          { username: "contributor5", commitsCount: Math.floor(stars / 500) },
+        ],
       },
     },
     evaluation: {

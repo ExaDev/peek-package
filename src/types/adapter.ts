@@ -29,7 +29,6 @@ export interface PackageStats {
   lastPublish?: string;
   openIssues?: number;
   commits?: number;
-  contributors?: number;
 
   // Quality scores (npms.io specific, 0-100)
   quality?: number;
@@ -46,6 +45,11 @@ export interface PackageStats {
   maintainers?: Array<{
     name: string;
     email?: string;
+  }>;
+  // GitHub contributors with commit counts (sorted by commits desc)
+  contributors?: Array<{
+    username: string;
+    commitsCount: number;
   }>;
 
   // Links

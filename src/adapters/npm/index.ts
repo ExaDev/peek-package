@@ -69,6 +69,11 @@ export interface NpmDataResult {
     openIssues: number;
     subscribers: number;
   };
+  // GitHub contributors sorted by commit count
+  contributors: Array<{
+    username: string;
+    commitsCount: number;
+  }>;
 }
 
 /**
@@ -170,6 +175,10 @@ export class NpmAdapter implements EcosystemAdapter {
           ),
         },
       },
+      // GitHub contributors sorted by commit count (descending)
+      contributors: (githubData?.contributors ?? [])
+        .slice()
+        .sort((a, b) => b.commitsCount - a.commitsCount),
     };
 
     // Include GitHub data from npms.io if available (cached, not rate-limited)

@@ -530,6 +530,42 @@ export function PackageMetricsPanel({
                     </Box>
                   )}
 
+                {/* Contributors */}
+                {packageStats.contributors &&
+                  packageStats.contributors.length > 0 && (
+                    <Box>
+                      <Text size="xs" c="dimmed" mb={4}>
+                        Top Contributors (
+                        {String(packageStats.contributors.length)})
+                      </Text>
+                      <Group gap="xs" wrap="wrap">
+                        {packageStats.contributors.slice(0, 10).map((c) => (
+                          <Tooltip
+                            key={c.username}
+                            label={`${c.username} (${String(c.commitsCount)} commits)`}
+                          >
+                            <Anchor
+                              href={`https://github.com/${c.username}`}
+                              target="_blank"
+                            >
+                              <Avatar
+                                src={`https://github.com/${c.username}.png?size=32`}
+                                size="sm"
+                                radius="xl"
+                                alt={c.username}
+                              />
+                            </Anchor>
+                          </Tooltip>
+                        ))}
+                        {packageStats.contributors.length > 10 && (
+                          <Avatar size="sm" radius="xl">
+                            +{String(packageStats.contributors.length - 10)}
+                          </Avatar>
+                        )}
+                      </Group>
+                    </Box>
+                  )}
+
                 {/* Links */}
                 {hasLinks && (
                   <Box>

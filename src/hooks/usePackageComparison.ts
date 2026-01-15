@@ -104,6 +104,7 @@ export function usePackageComparison(packageNames: string[]) {
           npm: npmData.npm,
           author: npmData.author,
           maintainers: npmData.maintainers,
+          contributors: npmData.contributors,
           links: npmData.links,
           evaluation: npmData.evaluation,
         };
