@@ -99,20 +99,27 @@ export function PackageMetricsPanel({
   const maintainersRef = useRef<HTMLDivElement>(null);
 
   // Detect if maintainers overflow the container
+  // Uses a ref to measure the collapsed height (32px) vs actual content height
+  const maintainersCount = packageStats?.maintainers?.length ?? 0;
   useEffect(() => {
     // Use requestAnimationFrame to ensure DOM is painted before measuring
     const checkOverflow = () => {
       const el = maintainersRef.current;
-      if (el && !maintainersExpanded) {
-        // Add 1px buffer for sub-pixel rendering differences
-        setHasOverflow(el.scrollHeight > el.clientHeight + 1);
+      if (el) {
+        // Temporarily remove max-height to measure true content height
+        const originalMaxHeight = el.style.maxHeight;
+        el.style.maxHeight = "none";
+        const contentHeight = el.scrollHeight;
+        el.style.maxHeight = originalMaxHeight;
+        // Check if content exceeds collapsed height (32px)
+        setHasOverflow(contentHeight > 33);
       }
     };
     const frameId = requestAnimationFrame(checkOverflow);
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [packageStats?.maintainers, maintainersExpanded]);
+  }, [maintainersCount]);
 
   if (isLoading) {
     return (
