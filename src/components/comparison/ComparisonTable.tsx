@@ -1,12 +1,12 @@
 import { Table, Text } from '@mantine/core';
-import type { ComparisonResult } from '@/services/comparator';
+import type { NPackageComparison } from '@/types/adapter';
 
 interface ComparisonTableProps {
-  comparison: ComparisonResult;
+  comparison: NPackageComparison;
 }
 
 export function ComparisonTable({ comparison }: ComparisonTableProps) {
-  const { package1, package2, differences } = comparison;
+  const { packages, metricComparisons } = comparison;
 
   const formatValue = (value: number | string | null): string => {
     if (value === null || value === undefined) return 'N/A';
@@ -16,45 +16,41 @@ export function ComparisonTable({ comparison }: ComparisonTableProps) {
     return value;
   };
 
-  const getWinnerStyle = (winner: string, packageName: string) => {
-    if (winner === 'tie') return {};
-    if (winner === 'none') return {};
-    return winner === packageName ? { fontWeight: 'bold' } : {};
-  };
-
   return (
-    <Table striped highlightOnHover>
+    <Table striped highlightOnHover style={{ tableLayout: 'auto' }}>
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>Metric</Table.Th>
-          <Table.Th>{package1.name}</Table.Th>
-          <Table.Th>{package2.name}</Table.Th>
+          <Table.Th style={{ position: 'sticky', left: 0, backgroundColor: 'inherit', zIndex: 1 }}>
+            Metric
+          </Table.Th>
+          {packages.map((pkg) => (
+            <Table.Th key={pkg.name}>{pkg.name}</Table.Th>
+          ))}
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {differences.map((diff, index) => (
-          <Table.Tr key={index}>
-            <Table.Td>
-              <Text fw={500}>{diff.metric}</Text>
+        {metricComparisons.map((metric) => (
+          <Table.Tr key={metric.name}>
+            <Table.Td style={{ position: 'sticky', left: 0, backgroundColor: 'inherit', zIndex: 1 }}>
+              <Text fw={500}>{metric.name}</Text>
             </Table.Td>
-            <Table.Td style={getWinnerStyle(diff.winner, 'package1')}>
-              {formatValue(diff.package1Value)}
-              {diff.percentageDiff && (
-                <Text size="xs" c="dimmed">
-                  {diff.percentageDiff > 0 ? '+' : ''}
-                  {diff.percentageDiff.toFixed(1)}%
-                </Text>
-              )}
-            </Table.Td>
-            <Table.Td style={getWinnerStyle(diff.winner, 'package2')}>
-              {formatValue(diff.package2Value)}
-              {diff.percentageDiff && diff.winner === 'package2' && (
-                <Text size="xs" c="dimmed">
-                  {diff.percentageDiff > 0 ? '+' : ''}
-                  {(-diff.percentageDiff).toFixed(1)}%
-                </Text>
-              )}
-            </Table.Td>
+            {metric.values.map((value) => (
+              <Table.Td
+                key={value.packageIndex}
+                style={{
+                  fontWeight: value.isWinner ? 'bold' : 'normal',
+                  color: value.isWinner ? 'var(--mantine-color-blue-9)' : undefined,
+                }}
+              >
+                {formatValue(value.value)}
+                {value.percentDiff !== undefined && value.value !== null && (
+                  <Text size="xs" c="dimmed">
+                    {value.percentDiff > 0 ? '+' : ''}
+                    {value.percentDiff.toFixed(1)}%
+                  </Text>
+                )}
+              </Table.Td>
+            ))}
           </Table.Tr>
         ))}
       </Table.Tbody>
