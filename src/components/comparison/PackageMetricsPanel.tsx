@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ActionIcon,
   Anchor,
@@ -11,11 +12,14 @@ import {
   Stack,
   Text,
   Tooltip,
+  UnstyledButton,
 } from "@mantine/core";
 import type { PackageStats } from "@/types/adapter";
 import {
   IconBrandGithub,
   IconBrandNpm,
+  IconChevronDown,
+  IconChevronUp,
   IconCode,
   IconExternalLink,
   IconRefresh,
@@ -90,6 +94,8 @@ export function PackageMetricsPanel({
   onRefreshNpm,
   onRefreshGithub,
 }: PackageMetricsPanelProps) {
+  const [maintainersExpanded, setMaintainersExpanded] = useState(false);
+
   if (isLoading) {
     return (
       <Card shadow="sm" padding="lg" withBorder>
@@ -443,30 +449,59 @@ export function PackageMetricsPanel({
                 )}
 
                 {/* Maintainers */}
-                {(packageStats.maintainers?.length ?? 0) > 0 && (
-                  <Box>
-                    <Text size="xs" c="dimmed" mb={4}>
-                      Maintainers
-                    </Text>
-                    <Avatar.Group spacing="sm">
-                      {packageStats.maintainers?.slice(0, 5).map((m) => (
-                        <Tooltip key={m.name} label={m.name}>
-                          <Avatar
-                            src={getGravatarUrl(m.email, 32)}
-                            size="sm"
-                            radius="xl"
-                            alt={m.name}
-                          />
-                        </Tooltip>
-                      ))}
-                      {(packageStats.maintainers?.length ?? 0) > 5 && (
-                        <Avatar size="sm" radius="xl">
-                          +{String((packageStats.maintainers?.length ?? 0) - 5)}
-                        </Avatar>
-                      )}
-                    </Avatar.Group>
-                  </Box>
-                )}
+                {packageStats.maintainers &&
+                  packageStats.maintainers.length > 0 && (
+                    <Box>
+                      <Group justify="space-between" mb={4}>
+                        <Text size="xs" c="dimmed">
+                          Maintainers ({packageStats.maintainers.length})
+                        </Text>
+                        {packageStats.maintainers.length > 3 && (
+                          <UnstyledButton
+                            onClick={() => {
+                              setMaintainersExpanded(!maintainersExpanded);
+                            }}
+                          >
+                            <Group gap={2}>
+                              <Text size="xs" c="blue">
+                                {maintainersExpanded ? "Show less" : "Show all"}
+                              </Text>
+                              {maintainersExpanded ? (
+                                <IconChevronUp
+                                  size={14}
+                                  color="var(--mantine-color-blue-6)"
+                                />
+                              ) : (
+                                <IconChevronDown
+                                  size={14}
+                                  color="var(--mantine-color-blue-6)"
+                                />
+                              )}
+                            </Group>
+                          </UnstyledButton>
+                        )}
+                      </Group>
+                      <Box
+                        style={{
+                          overflow: maintainersExpanded ? "visible" : "hidden",
+                          maxHeight: maintainersExpanded ? "none" : "32px",
+                        }}
+                      >
+                        <Group gap="xs" wrap="wrap">
+                          {packageStats.maintainers.map((m) => (
+                            <Tooltip key={m.name} label={m.name}>
+                              <Avatar
+                                src={getGravatarUrl(m.email, 32)}
+                                size="sm"
+                                radius="xl"
+                                alt={m.name}
+                              />
+                            </Tooltip>
+                          ))}
+                        </Group>
+                      </Box>
+                    </Box>
+                  )}
 
                 {/* Links */}
                 {hasLinks && (
