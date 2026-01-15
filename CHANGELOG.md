@@ -1,3 +1,50 @@
+# [1.4.0](https://github.com/ExaDev/peek-package/compare/v1.3.0...v1.4.0) (2026-01-15)
+
+### Bug Fixes
+
+- **api:** correct weekly downloads index and GitHub URL parsing ([5ccaf36](https://github.com/ExaDev/peek-package/commit/5ccaf36a21da2866daa199a1824b6996461828d0))
+- **api:** display popularity metrics as raw values not percentages ([3a59816](https://github.com/ExaDev/peek-package/commit/3a59816ac0b082b4fd9743a0e9a52bf791d4438c))
+- **api:** handle maintainers with username instead of name ([c9624a5](https://github.com/ExaDev/peek-package/commit/c9624a51403cb8dce79bb29fcb1fca34ba8526da))
+- prevent duplicate package keys and deduplicate URL params ([30bcab5](https://github.com/ExaDev/peek-package/commit/30bcab5215b2b1955053aeef67d35ad997fbf661))
+- **test:** target h4 headings for package titles to avoid README conflicts ([3283845](https://github.com/ExaDev/peek-package/commit/3283845c16659b97762fe5f7fbd343d82c6d70c7))
+- **ui:** allow README sections to have independent heights ([c487362](https://github.com/ExaDev/peek-package/commit/c4873625bdf58b8c38f22c61264a95cdbcbced5c))
+- **ui:** center columns and fix scroll for many packages ([949fda7](https://github.com/ExaDev/peek-package/commit/949fda73acd883dd09369adfc94b30211a568023))
+- **ui:** constrain README images and enable badge row wrapping ([d5ce5fd](https://github.com/ExaDev/peek-package/commit/d5ce5fd9e6d642e4be34549a1a488f2b714510b0))
+- **ui:** improve maintainers overflow detection timing ([7845e7b](https://github.com/ExaDev/peek-package/commit/7845e7b4caa7d05bb1bde7774fd842af4ef165a8))
+- **ui:** only show expand button when maintainers overflow ([d8db04b](https://github.com/ExaDev/peek-package/commit/d8db04b9cb9be4b4bceb3d1c2e21590526fec610))
+- **ui:** preserve expand button after collapse ([0a8ae03](https://github.com/ExaDev/peek-package/commit/0a8ae036b225d0737881b52b85039f2f8bb2753e))
+- **ui:** use theme-aware colors for dark mode support ([3821e4f](https://github.com/ExaDev/peek-package/commit/3821e4f6e344ef8d0efa06aa8a5f68e55c5f5e55))
+- **ui:** widen columns to make better use of screen space ([8292c1a](https://github.com/ExaDev/peek-package/commit/8292c1af4ee1de878c0e2565bc0f559a79186f02))
+
+### Features
+
+- add error boundary to catch React rendering errors ([006b6e2](https://github.com/ExaDev/peek-package/commit/006b6e278c3581237c3b0b5b7ae94dd6bbbd211f))
+- add persistent cache and graceful GitHub rate limit handling ([dbd20d3](https://github.com/ExaDev/peek-package/commit/dbd20d3918d577a1ca509f4810da16e3589a970c))
+- **api:** extract all available fields from npms.io API ([0718341](https://github.com/ExaDev/peek-package/commit/07183411ff26e38ff47146fad7ddd47b818b03fc))
+- **app:** wire sorting state management ([f71bebb](https://github.com/ExaDev/peek-package/commit/f71bebb4dd10c13ab768206f2444c07530d8c7ef))
+- auto-remove non-existent packages from URL ([80fb32e](https://github.com/ExaDev/peek-package/commit/80fb32e2241db9c526c913f145ad3f9cd8a34c3a))
+- extend cache to 72 hours and add manual refresh button ([41e76a4](https://github.com/ExaDev/peek-package/commit/41e76a4a64bc9c82228bae8fd8ed7dec9052f298))
+- **hooks:** add package sorting hook ([1360127](https://github.com/ExaDev/peek-package/commit/13601272b68406b29765292b948a3cf8141c36ab))
+- **hooks:** add separate npm and GitHub queries with independent caching ([80990b1](https://github.com/ExaDev/peek-package/commit/80990b17c5b684fbc99aa04f9c022bfbc6c35038))
+- **hooks:** add sort criteria URL sync ([17e45a9](https://github.com/ExaDev/peek-package/commit/17e45a9dd472b45770ccc1024bd4d2dd396d4d04))
+- **hooks:** enable browser history for package changes ([2c99a7a](https://github.com/ExaDev/peek-package/commit/2c99a7ad406de11593e67619239d7557118054d5))
+- **hooks:** pass all new metrics through usePackageComparison ([63af005](https://github.com/ExaDev/peek-package/commit/63af0054bc501d058fc4aa4116d408c4afdc616f))
+- **types:** add fields for all available npm and GitHub metrics ([491338c](https://github.com/ExaDev/peek-package/commit/491338cbb8e8431039fce3edd260d630ff45d9d2))
+- **types:** add sort types and default directions ([f65d4f4](https://github.com/ExaDev/peek-package/commit/f65d4f4dbb468b11ae21f261ea1e9f7ecad3fc06))
+- **ui:** add expandable maintainers section ([33cecb2](https://github.com/ExaDev/peek-package/commit/33cecb26e85a3f3eed9237d5e0f29e9b25d2a92c))
+- **ui:** add GitHub contributors with profile pictures ([eeb3bb2](https://github.com/ExaDev/peek-package/commit/eeb3bb2b909a4d68d889b76260e54ae3f254ce09))
+- **ui:** add Gravatar avatars for package maintainers ([7979511](https://github.com/ExaDev/peek-package/commit/7979511258651f2f9e808e964a26edb2490f08ea))
+- **ui:** add grouped npm/GitHub display with separate refresh buttons ([fb5cc75](https://github.com/ExaDev/peek-package/commit/fb5cc7524a791e8fbff9a6a44aaa438f5f384e28))
+- **ui:** add multi-view layout with carousel, grid, list, and table modes ([160022d](https://github.com/ExaDev/peek-package/commit/160022ddee97eec561dfe70c70ca7277514daf7f))
+- **ui:** add smooth animation to maintainers expand/collapse ([b54db7c](https://github.com/ExaDev/peek-package/commit/b54db7c1449312c55ce1b5c48c100600ffeee9b8))
+- **ui:** add sort sidebar component ([2c9503d](https://github.com/ExaDev/peek-package/commit/2c9503d9e447d7d6a22f75e05721162225bc6442))
+- **ui:** align individual fields across columns using nested subgrid ([560dd85](https://github.com/ExaDev/peek-package/commit/560dd858c8d5bf9c45f61f35d141236c69b6539e))
+- **ui:** align sections across columns using CSS subgrid ([fc42daa](https://github.com/ExaDev/peek-package/commit/fc42daaf326bf35abc24fc188b4bcba225d1bc5c))
+- **ui:** display all metrics with accordion sections ([f91d36b](https://github.com/ExaDev/peek-package/commit/f91d36b1fd04991fb152e7c800795ebf3fa060e4))
+- **ui:** full viewport layout with flexible columns ([e44d9a2](https://github.com/ExaDev/peek-package/commit/e44d9a26738548b245879cf651e6b248d1501eb8))
+- **ui:** integrate sort sidebar into carousel view ([47cb087](https://github.com/ExaDev/peek-package/commit/47cb087e682dab012ba2716741a8b2e9f6b91df9))
+- **ui:** single input bar layout with centralized package search ([1dcde25](https://github.com/ExaDev/peek-package/commit/1dcde2586bcbbef968b40cf6d1e8195144e162ef))
+
 # [1.3.0](https://github.com/ExaDev/peek-package/compare/v1.2.1...v1.3.0) (2026-01-15)
 
 ### Bug Fixes
