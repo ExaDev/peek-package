@@ -96,10 +96,11 @@ function createPackageDetails(
         branding: quality * 0.7,
       },
       popularity: {
-        communityInterest: popularity * 0.9,
-        downloadsCount: popularity * 0.95,
-        downloadsAcceleration: popularity * 0.5,
-        dependentsCount: popularity * 0.8,
+        // These are raw metrics, not 0-1 scores (matching real API)
+        communityInterest: stars + Math.floor(stars / 10),
+        downloadsCount: downloads,
+        downloadsAcceleration: Math.floor(downloads * 0.05),
+        dependentsCount: Math.floor(downloads / 10000),
       },
       maintenance: {
         releasesFrequency: maintenance * 0.85,

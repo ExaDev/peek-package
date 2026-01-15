@@ -571,34 +571,66 @@ export function PackageMetricsPanel({
                     </Stack>
                   </Box>
 
-                  {/* Popularity Breakdown */}
-                  <Box>
-                    <Text size="xs" fw={500} mb={4}>
-                      Popularity
-                    </Text>
-                    <Stack gap={2}>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Community Interest
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.popularity
-                            .communityInterest ?? 0}
-                          %
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Downloads Trend
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.popularity
-                            .downloadsAcceleration ?? 0}
-                          %
-                        </Badge>
-                      </Group>
-                    </Stack>
-                  </Box>
+                  {/* Popularity Breakdown - these are raw metrics, not scores */}
+                  {packageStats.evaluation?.popularity && (
+                    <Box>
+                      <Text size="xs" fw={500} mb={4}>
+                        Popularity
+                      </Text>
+                      <Stack gap={2}>
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Community Interest
+                          </Text>
+                          <Badge size="xs" variant="light">
+                            {packageStats.evaluation.popularity.communityInterest.toLocaleString()}
+                          </Badge>
+                        </Group>
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Downloads Count
+                          </Text>
+                          <Badge size="xs" variant="light">
+                            {formatNumber(
+                              packageStats.evaluation.popularity.downloadsCount,
+                            )}
+                          </Badge>
+                        </Group>
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Downloads Trend
+                          </Text>
+                          <Badge
+                            size="xs"
+                            variant="light"
+                            color={
+                              packageStats.evaluation.popularity
+                                .downloadsAcceleration >= 0
+                                ? "green"
+                                : "red"
+                            }
+                          >
+                            {packageStats.evaluation.popularity
+                              .downloadsAcceleration >= 0
+                              ? "+"
+                              : ""}
+                            {formatNumber(
+                              packageStats.evaluation.popularity
+                                .downloadsAcceleration,
+                            )}
+                          </Badge>
+                        </Group>
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed">
+                            Dependents Count
+                          </Text>
+                          <Badge size="xs" variant="light">
+                            {packageStats.evaluation.popularity.dependentsCount.toLocaleString()}
+                          </Badge>
+                        </Group>
+                      </Stack>
+                    </Box>
+                  )}
 
                   {/* Maintenance Breakdown */}
                   <Box>

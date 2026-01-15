@@ -151,18 +151,11 @@ export class NpmAdapter implements EcosystemAdapter {
           branding: Math.round(evaluation.quality.branding * 100),
         },
         popularity: {
-          communityInterest: Math.round(
-            evaluation.popularity.communityInterest * 100,
-          ),
-          downloadsCount: Math.round(
-            evaluation.popularity.downloadsCount * 100,
-          ),
-          downloadsAcceleration: Math.round(
-            evaluation.popularity.downloadsAcceleration * 100,
-          ),
-          dependentsCount: Math.round(
-            evaluation.popularity.dependentsCount * 100,
-          ),
+          // These are raw metrics, not 0-1 scores like quality/maintenance
+          communityInterest: evaluation.popularity.communityInterest,
+          downloadsCount: evaluation.popularity.downloadsCount,
+          downloadsAcceleration: evaluation.popularity.downloadsAcceleration,
+          dependentsCount: evaluation.popularity.dependentsCount,
         },
         maintenance: {
           releasesFrequency: Math.round(
