@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  vite: ^6.0.7
-
 importers:
   .:
     dependencies:
@@ -3071,7 +3068,7 @@ packages:
       }
     engines: { node: ^20.19.0 || >=22.12.0 }
     peerDependencies:
-      vite: ^6.0.7
+      vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
   "@vitest/coverage-v8@4.0.17":
     resolution:
@@ -3098,7 +3095,7 @@ packages:
       }
     peerDependencies:
       msw: ^2.4.9
-      vite: ^6.0.7
+      vite: ^6.0.0 || ^7.0.0-0
     peerDependenciesMeta:
       msw:
         optional: true
