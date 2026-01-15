@@ -21,6 +21,16 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
+// Mock ResizeObserver for Mantine Autocomplete
+class ResizeObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+
+globalThis.ResizeObserver = ResizeObserverMock as any
+window.ResizeObserver = ResizeObserverMock as any
+
 // Mock IndexedDB
 const indexedDB = {
   open: vi.fn(),

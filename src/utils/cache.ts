@@ -46,4 +46,7 @@ export const cacheKeys = {
 
   githubReadme: (repoUrl: string) =>
     ['github', 'readme', repoUrl] as const,
+
+  searchSuggestions: (query: string) =>
+    ['search', 'suggestions', query] as const,
 };

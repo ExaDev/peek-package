@@ -1,4 +1,4 @@
-import type { NpmsPackageResponse } from '@/types/api';
+import type { NpmsPackageResponse, NpmsSearchResponse } from '@/types/api';
 
 /**
  * Client for npms.io API (CORS-enabled)
@@ -51,6 +51,32 @@ export class NpmsClient {
 
     if (!response.ok) {
       throw new Error(`npms.io batch API error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Fetch search suggestions for package names
+   * @param query Search query (minimum 2 characters recommended)
+   * @returns Search results with package names, versions, and descriptions
+   */
+  async fetchSuggestions(query: string): Promise<NpmsSearchResponse> {
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    const url = `${this.baseUrl}/search/suggestions?q=${encodeURIComponent(query)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`npms.io search error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();

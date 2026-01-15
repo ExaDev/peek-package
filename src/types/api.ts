@@ -81,3 +81,34 @@ export interface GithubReadmeResponse {
   content: string;
   encoding: string;
 }
+
+/**
+ * npms.io search suggestions response
+ * Endpoint: GET https://api.npms.io/v2/search/suggestions?q={query}
+ */
+export type NpmsSearchResponse = Array<{
+  package: {
+    name: string;
+    version: string;
+    description: string;
+    author: string;
+    date: string;
+    keywords: string[];
+    links: {
+      npm: string;
+      homepage: string | null;
+      repository: string | null;
+      bugs: string | null;
+    };
+  };
+  score: {
+    final: number;
+    detail: {
+      quality: number;
+      popularity: number;
+      maintenance: number;
+    };
+  };
+  searchScore: number;
+  highlight: string;
+}>;
