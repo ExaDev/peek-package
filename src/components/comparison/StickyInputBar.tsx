@@ -3,8 +3,8 @@ import {
   ActionIcon,
   Autocomplete,
   Badge,
+  Box,
   Button,
-  Container,
   Divider,
   Group,
   Paper,
@@ -102,7 +102,7 @@ export function StickyInputBar({
         transition: "all 0.2s",
       }}
     >
-      <Container size="xl">
+      <Box px="md">
         <Group justify="space-between" wrap="nowrap">
           <Group gap="md" wrap="nowrap" style={{ flex: 1 }}>
             <Title order={4} style={{ whiteSpace: "nowrap" }}>
@@ -235,7 +235,7 @@ export function StickyInputBar({
             )}
           </Group>
         </Group>
-      </Container>
+      </Box>
     </Paper>
   );
 }

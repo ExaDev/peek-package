@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Group, Paper, Title } from "@mantine/core";
+import { ActionIcon, Group, Paper, Title } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -78,19 +78,12 @@ export function PackageColumn({
           <Title order={5} mb="md">
             README
           </Title>
-          <Box
-            style={{
-              maxHeight: "500px",
-              overflow: "auto",
-            }}
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeSanitize]}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeSanitize]}
-            >
-              {packageStats.github.readme}
-            </ReactMarkdown>
-          </Box>
+            {packageStats.github.readme}
+          </ReactMarkdown>
         </Paper>
       )}
     </div>

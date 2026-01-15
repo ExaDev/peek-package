@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Container } from "@mantine/core";
+import { Box } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { theme } from "./theme";
@@ -7,6 +7,9 @@ import { usePackageColumn } from "./hooks/usePackageColumn";
 import { PackageComparisonLayout } from "./components/comparison/PackageComparisonLayout";
 import { StickyInputBar } from "./components/comparison/StickyInputBar";
 import type { ViewMode } from "./types/views";
+
+// Header height for viewport calculations
+const HEADER_HEIGHT = 56;
 
 function App() {
   const { packages, addPackage, removePackage, canRemove } = usePackageColumn();
@@ -58,14 +61,20 @@ function App() {
         onAddPackage={addPackage}
       />
 
-      <Container id="main-content" size="xl" py="xl">
+      <Box
+        id="main-content"
+        style={{
+          height: `calc(100vh - ${String(HEADER_HEIGHT)}px)`,
+          overflow: "hidden",
+        }}
+      >
         <PackageComparisonLayout
           packages={packages}
           viewMode={viewMode}
           removePackage={removePackage}
           canRemove={canRemove}
         />
-      </Container>
+      </Box>
     </MantineProvider>
   );
 }

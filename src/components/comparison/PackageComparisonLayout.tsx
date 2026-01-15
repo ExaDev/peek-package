@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Box } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
 import type { PackageColumnState } from "@/hooks/usePackageColumn";
@@ -154,17 +155,21 @@ export function PackageComparisonLayout({
     onRefresh: refetchPackage,
   };
 
-  // Render based on view mode
-  switch (viewMode) {
-    case "carousel":
-      return <CarouselView {...viewProps} />;
-    case "grid":
-      return <GridView {...viewProps} />;
-    case "list":
-      return <ListView {...viewProps} />;
-    case "table":
-      return <TableView {...viewProps} />;
-    default:
-      return <CarouselView {...viewProps} />;
-  }
+  // Render view in full-height container
+  const renderView = () => {
+    switch (viewMode) {
+      case "carousel":
+        return <CarouselView {...viewProps} />;
+      case "grid":
+        return <GridView {...viewProps} />;
+      case "list":
+        return <ListView {...viewProps} />;
+      case "table":
+        return <TableView {...viewProps} />;
+      default:
+        return <CarouselView {...viewProps} />;
+    }
+  };
+
+  return <Box style={{ height: "100%" }}>{renderView()}</Box>;
 }
