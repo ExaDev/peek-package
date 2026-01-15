@@ -1,7 +1,7 @@
-import { useQueries } from '@tanstack/react-query';
-import { NpmAdapter } from '@/adapters/npm';
-import type { PkgCompareRequest, PackageStats } from '@/types/adapter';
-import { cacheKeys } from '@/utils/cache';
+import { useQueries } from "@tanstack/react-query";
+import { NpmAdapter } from "@/adapters/npm";
+import type { PrePackageRequest, PackageStats } from "@/types/adapter";
+import { cacheKeys } from "@/utils/cache";
 
 const adapter = new NpmAdapter();
 
@@ -14,9 +14,9 @@ export function usePackage(packageName: string, enabled: boolean = true) {
       {
         queryKey: cacheKeys.package(packageName),
         queryFn: async () => {
-          const request: PkgCompareRequest = {
+          const request: PrePackageRequest = {
             packageName,
-            ecosystem: 'npm',
+            ecosystem: "npm",
           };
           return adapter.fetch(request);
         },
@@ -36,9 +36,9 @@ export function usePackageComparison(packageNames: string[]) {
     queries: packageNames.map((name) => ({
       queryKey: cacheKeys.package(name),
       queryFn: async () => {
-        const request: PkgCompareRequest = {
+        const request: PrePackageRequest = {
           packageName: name,
-          ecosystem: 'npm',
+          ecosystem: "npm",
         };
         return adapter.fetch(request);
       },
@@ -54,7 +54,9 @@ export function usePackageComparison(packageNames: string[]) {
 
   const isLoading = results.some((result) => result.isLoading);
   const isError = results.some((result) => result.isError);
-  const errors = results.map((result) => result.error).filter((err): err is Error => err !== undefined);
+  const errors = results
+    .map((result) => result.error)
+    .filter((err): err is Error => err != null);
 
   return {
     isLoading,
