@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Paper, Title } from "@mantine/core";
+import { ActionIcon, Card, Divider, Group, Text, Title } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,18 +35,19 @@ export function PackageColumn({
   isRefetchingGithub = false,
 }: PackageColumnProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-        height: "100%",
-      }}
-    >
-      {/* Package Header with Remove Button */}
-      <Paper p="sm" radius="md" withBorder>
+    <Card shadow="sm" padding={0} withBorder style={{ height: "100%" }}>
+      {/* Column Header */}
+      <Card.Section
+        inheritPadding
+        py="sm"
+        px="lg"
+        bg="var(--mantine-color-brand-0)"
+        style={{ borderBottom: "1px solid var(--mantine-color-gray-3)" }}
+      >
         <Group justify="space-between" wrap="nowrap">
-          <Title order={4}>{packageName}</Title>
+          <Text fw={700} size="lg">
+            {packageName}
+          </Text>
           {showRemove && (
             <ActionIcon
               color="red"
@@ -59,22 +60,25 @@ export function PackageColumn({
             </ActionIcon>
           )}
         </Group>
-      </Paper>
+      </Card.Section>
 
-      {/* Metrics Panel with grouped npm/GitHub data and refresh buttons */}
-      <PackageMetricsPanel
-        packageStats={packageStats}
-        isLoading={isLoading}
-        winnerMetrics={winnerMetrics}
-        onRefreshNpm={onRefreshNpm}
-        onRefreshGithub={onRefreshGithub}
-        isRefetchingNpm={isRefetchingNpm}
-        isRefetchingGithub={isRefetchingGithub}
-      />
+      {/* Metrics Panel */}
+      <Card.Section inheritPadding py="md" px="lg">
+        <PackageMetricsPanel
+          packageStats={packageStats}
+          isLoading={isLoading}
+          winnerMetrics={winnerMetrics}
+          onRefreshNpm={onRefreshNpm}
+          onRefreshGithub={onRefreshGithub}
+          isRefetchingNpm={isRefetchingNpm}
+          isRefetchingGithub={isRefetchingGithub}
+        />
+      </Card.Section>
 
       {/* README Section */}
       {packageStats?.github?.readme && (
-        <Paper p="md" radius="md" withBorder>
+        <Card.Section inheritPadding py="md" px="lg">
+          <Divider mb="md" />
           <Title order={5} mb="md">
             README
           </Title>
@@ -84,8 +88,8 @@ export function PackageColumn({
           >
             {packageStats.github.readme}
           </ReactMarkdown>
-        </Paper>
+        </Card.Section>
       )}
-    </div>
+    </Card>
   );
 }
