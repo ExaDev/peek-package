@@ -1,5 +1,4 @@
 import {
-  Accordion,
   ActionIcon,
   Anchor,
   Avatar,
@@ -528,17 +527,20 @@ export function PackageMetricsPanel({
           </>
         )}
 
-        {/* Accordion for Detailed Scores */}
-        <Accordion variant="separated" radius="sm">
-          {/* Detailed Scores Section */}
-          {hasEvaluation && (
-            <Accordion.Item value="detailed-scores">
-              <Accordion.Control icon={<IconTrophy size={16} />}>
-                <Text size="sm">Detailed Scores</Text>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="md">
-                  {/* Quality Breakdown */}
+        {/* Detailed Scores Section */}
+        {hasEvaluation && (
+          <>
+            <Divider />
+            <Box>
+              <Group gap="xs" mb="xs">
+                <IconTrophy size={18} />
+                <Text size="sm" fw={600}>
+                  Detailed Scores
+                </Text>
+              </Group>
+              <Stack gap="md">
+                {/* Quality Breakdown */}
+                {packageStats.evaluation?.quality && (
                   <Box>
                     <Text size="xs" fw={500} mb={4}>
                       Quality
@@ -549,7 +551,7 @@ export function PackageMetricsPanel({
                           Tests
                         </Text>
                         <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.quality.tests ?? 0}%
+                          {packageStats.evaluation.quality.tests}%
                         </Badge>
                       </Group>
                       <Group justify="space-between">
@@ -557,7 +559,7 @@ export function PackageMetricsPanel({
                           Health
                         </Text>
                         <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.quality.health ?? 0}%
+                          {packageStats.evaluation.quality.health}%
                         </Badge>
                       </Group>
                       <Group justify="space-between">
@@ -565,74 +567,76 @@ export function PackageMetricsPanel({
                           Carefulness
                         </Text>
                         <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.quality.carefulness ?? 0}%
+                          {packageStats.evaluation.quality.carefulness}%
                         </Badge>
                       </Group>
                     </Stack>
                   </Box>
+                )}
 
-                  {/* Popularity Breakdown - these are raw metrics, not scores */}
-                  {packageStats.evaluation?.popularity && (
-                    <Box>
-                      <Text size="xs" fw={500} mb={4}>
-                        Popularity
-                      </Text>
-                      <Stack gap={2}>
-                        <Group justify="space-between">
-                          <Text size="xs" c="dimmed">
-                            Community Interest
-                          </Text>
-                          <Badge size="xs" variant="light">
-                            {packageStats.evaluation.popularity.communityInterest.toLocaleString()}
-                          </Badge>
-                        </Group>
-                        <Group justify="space-between">
-                          <Text size="xs" c="dimmed">
-                            Downloads Count
-                          </Text>
-                          <Badge size="xs" variant="light">
-                            {formatNumber(
-                              packageStats.evaluation.popularity.downloadsCount,
-                            )}
-                          </Badge>
-                        </Group>
-                        <Group justify="space-between">
-                          <Text size="xs" c="dimmed">
-                            Downloads Trend
-                          </Text>
-                          <Badge
-                            size="xs"
-                            variant="light"
-                            color={
-                              packageStats.evaluation.popularity
-                                .downloadsAcceleration >= 0
-                                ? "green"
-                                : "red"
-                            }
-                          >
-                            {packageStats.evaluation.popularity
+                {/* Popularity Breakdown - these are raw metrics, not scores */}
+                {packageStats.evaluation?.popularity && (
+                  <Box>
+                    <Text size="xs" fw={500} mb={4}>
+                      Popularity
+                    </Text>
+                    <Stack gap={2}>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Community Interest
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation.popularity.communityInterest.toLocaleString()}
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Downloads Count
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {formatNumber(
+                            packageStats.evaluation.popularity.downloadsCount,
+                          )}
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Downloads Trend
+                        </Text>
+                        <Badge
+                          size="xs"
+                          variant="light"
+                          color={
+                            packageStats.evaluation.popularity
                               .downloadsAcceleration >= 0
-                              ? "+"
-                              : ""}
-                            {formatNumber(
-                              packageStats.evaluation.popularity
-                                .downloadsAcceleration,
-                            )}
-                          </Badge>
-                        </Group>
-                        <Group justify="space-between">
-                          <Text size="xs" c="dimmed">
-                            Dependents Count
-                          </Text>
-                          <Badge size="xs" variant="light">
-                            {packageStats.evaluation.popularity.dependentsCount.toLocaleString()}
-                          </Badge>
-                        </Group>
-                      </Stack>
-                    </Box>
-                  )}
+                              ? "green"
+                              : "red"
+                          }
+                        >
+                          {packageStats.evaluation.popularity
+                            .downloadsAcceleration >= 0
+                            ? "+"
+                            : ""}
+                          {formatNumber(
+                            packageStats.evaluation.popularity
+                              .downloadsAcceleration,
+                          )}
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Dependents Count
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation.popularity.dependentsCount.toLocaleString()}
+                        </Badge>
+                      </Group>
+                    </Stack>
+                  </Box>
+                )}
 
-                  {/* Maintenance Breakdown */}
+                {/* Maintenance Breakdown */}
+                {packageStats.evaluation?.maintenance && (
                   <Box>
                     <Text size="xs" fw={500} mb={4}>
                       Maintenance
@@ -643,8 +647,10 @@ export function PackageMetricsPanel({
                           Release Frequency
                         </Text>
                         <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.maintenance
-                            .releasesFrequency ?? 0}
+                          {
+                            packageStats.evaluation.maintenance
+                              .releasesFrequency
+                          }
                           %
                         </Badge>
                       </Group>
@@ -653,18 +659,17 @@ export function PackageMetricsPanel({
                           Commit Frequency
                         </Text>
                         <Badge size="xs" variant="light">
-                          {packageStats.evaluation?.maintenance
-                            .commitsFrequency ?? 0}
+                          {packageStats.evaluation.maintenance.commitsFrequency}
                           %
                         </Badge>
                       </Group>
                     </Stack>
                   </Box>
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-          )}
-        </Accordion>
+                )}
+              </Stack>
+            </Box>
+          </>
+        )}
       </Stack>
     </Card>
   );
