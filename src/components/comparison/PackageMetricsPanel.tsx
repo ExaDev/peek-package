@@ -100,10 +100,18 @@ export function PackageMetricsPanel({
 
   // Detect if maintainers overflow the container
   useEffect(() => {
-    const el = maintainersRef.current;
-    if (el && !maintainersExpanded) {
-      setHasOverflow(el.scrollHeight > el.clientHeight);
-    }
+    // Use requestAnimationFrame to ensure DOM is painted before measuring
+    const checkOverflow = () => {
+      const el = maintainersRef.current;
+      if (el && !maintainersExpanded) {
+        // Add 1px buffer for sub-pixel rendering differences
+        setHasOverflow(el.scrollHeight > el.clientHeight + 1);
+      }
+    };
+    const frameId = requestAnimationFrame(checkOverflow);
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
   }, [packageStats?.maintainers, maintainersExpanded]);
 
   if (isLoading) {
