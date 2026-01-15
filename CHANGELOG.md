@@ -1,3 +1,38 @@
+# [1.3.0](https://github.com/ExaDev/peek-package/compare/v1.2.1...v1.3.0) (2026-01-15)
+
+### Bug Fixes
+
+- **api:** add type guard for Octokit errors and fix regex escapes ([6e41a6e](https://github.com/ExaDev/peek-package/commit/6e41a6e5950d1a18c930fda6f1a68965474673b5))
+- **api:** handle missing dependencies in npm adapter ([8cca6bb](https://github.com/ExaDev/peek-package/commit/8cca6bb3bb99e3cba88f9088cb4d72a9186c49e6))
+- **api:** return null instead of throwing on GitHub API failures ([2b2bd15](https://github.com/ExaDev/peek-package/commit/2b2bd15a1404cead0a644250ac96c16c42c55556))
+- **hooks:** limit retries in usePackageComparison ([c12d7c1](https://github.com/ExaDev/peek-package/commit/c12d7c15fb37204ea46f58a167a544bf99575cdc))
+- **hooks:** use correct null check in error filter ([3049fee](https://github.com/ExaDev/peek-package/commit/3049fee362f07066ed0f2ff40e86597ac82c205c))
+- prettify URL by avoiding encoding of colons and commas ([4c5a3c7](https://github.com/ExaDev/peek-package/commit/4c5a3c74c24fdc2520c65d2a413a10d62b958216))
+- **test:** match exact react option in API integration test ([e00f998](https://github.com/ExaDev/peek-package/commit/e00f998b2544177bda87fec258498f99166d9f39))
+- **types:** correct NpmsPackageResponse to match actual API structure ([229f9be](https://github.com/ExaDev/peek-package/commit/229f9be4691fe6fe9597f9db365b33cc4bfdb948))
+- **ui:** fix column layout - remove nested Flex structure ([689e374](https://github.com/ExaDev/peek-package/commit/689e37451195aa13800899bf3e9eac52770dc0fc))
+- **ui:** separate add button from columns to prevent alignment issues ([e9b19a4](https://github.com/ExaDev/peek-package/commit/e9b19a41cfb69a6f89b377a2710683f46b3cadc0))
+- **ui:** use absolute positioning for add button to not affect column centering ([cbfd11a](https://github.com/ExaDev/peek-package/commit/cbfd11ab9a406c2de176719cc3e5401a14120859))
+- **ui:** use fixed column width for side-by-side layout ([c7f39da](https://github.com/ExaDev/peek-package/commit/c7f39dab8971f43eadfebce97d0677ce442f7443))
+- **ui:** use horizontal scroll instead of wrap for desktop columns ([b97706b](https://github.com/ExaDev/peek-package/commit/b97706bad8a9d9727edbc303e6821424b630b1d8))
+- **ui:** use sticky positioning for header to prevent overlap ([076eede](https://github.com/ExaDev/peek-package/commit/076eede11710abe107da515cec827d23d65be6b3))
+- **utils:** use unknown instead of any for cached data type ([86b9e27](https://github.com/ExaDev/peek-package/commit/86b9e272ee69c48b22a57520365c0bf3ee7b0803))
+
+### Features
+
+- add URL state sync for shareable package comparisons ([9f971b1](https://github.com/ExaDev/peek-package/commit/9f971b13cc30cf312a0a7e96071ac88577e4a4d5))
+- **hooks:** add usePackageColumn hook for column state management ([87de74a](https://github.com/ExaDev/peek-package/commit/87de74a0325e6f81c878fa5f13d7554b60c148e1))
+- **test:** add MSW for API mocking in e2e tests ([e3c84fa](https://github.com/ExaDev/peek-package/commit/e3c84faf49e3cf0cab373e5bb3de91e25f238a54))
+- **test:** add Playwright e2e test infrastructure ([e68b557](https://github.com/ExaDev/peek-package/commit/e68b557b5d37ee96af163be0b6d81e3ee808433b))
+- **ui:** add AddColumnButton FAB with remaining slots ([86b8d9a](https://github.com/ExaDev/peek-package/commit/86b8d9a583b4acf14028a92d08e706da92d1f223))
+- **ui:** add PackageColumn component combining input + metrics ([96f33a9](https://github.com/ExaDev/peek-package/commit/96f33a9ac778fb0105c747a86474d9f13ecd7d88))
+- **ui:** add PackageComparisonLayout with responsive flex layout ([a5e454f](https://github.com/ExaDev/peek-package/commit/a5e454fa6de063e90fdd51bab764d07465d7d6a5))
+- **ui:** add PackageMetricsPanel component for vertical metric display ([f504cef](https://github.com/ExaDev/peek-package/commit/f504cef6e9ab97edeadaeed1c4dfefb47b420c03))
+- **ui:** defer API calls until explicit submission ([cef0e01](https://github.com/ExaDev/peek-package/commit/cef0e01ce2ad463a219f36ebea37c5e19d660053))
+- **ui:** extract PackageAutocompleteInput component ([680d7e0](https://github.com/ExaDev/peek-package/commit/680d7e0499a9f0f9dd76950bfcf17e19eae0e0c2))
+- **ui:** move README display into each package column ([0054f13](https://github.com/ExaDev/peek-package/commit/0054f13634d369c34959d72516d5d56ba33450b5))
+- **ui:** restore README accordion in comparison layout ([899404a](https://github.com/ExaDev/peek-package/commit/899404a323342b24a383a9d355c80871f7ecf05a))
+
 ## [1.2.1](https://github.com/ExaDev/package-compare/compare/v1.2.0...v1.2.1) (2026-01-15)
 
 # [1.2.0](https://github.com/ExaDev/package-compare/compare/v1.1.0...v1.2.0) (2026-01-15)
