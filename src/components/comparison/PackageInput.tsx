@@ -1,61 +1,107 @@
-import { useForm } from '@mantine/form';
-import { Button, Group, Stack, TextInput, Title } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { useState } from 'react';
+import { ActionIcon, Button, Group, Stack, Text, TextInput, Title } from '@mantine/core';
+import { IconSearch, IconX } from '@tabler/icons-react';
 
-interface PackageInputForm {
-  package1: string;
-  package2: string;
-}
+const MAX_PACKAGES = 6;
+const MIN_PACKAGES = 2;
 
 interface PackageInputProps {
-  onCompare: (pkg1: string, pkg2: string) => void;
+  onCompare: (packageNames: string[]) => void;
   loading?: boolean;
 }
 
 export function PackageInput({ onCompare, loading }: PackageInputProps) {
-  const form = useForm<PackageInputForm>({
-    initialValues: {
-      package1: '',
-      package2: '',
-    },
-    validate: {
-      package1: (value) => (!value ? 'Package name is required' : null),
-      package2: (value) => (!value ? 'Package name is required' : null),
-    },
-  });
+  const [packages, setPackages] = useState<string[]>(['', '']);
 
-  const handleSubmit = (values: PackageInputForm) => {
-    onCompare(values.package1, values.package2);
+  const handleAddPackage = () => {
+    if (packages.length < MAX_PACKAGES) {
+      setPackages([...packages, '']);
+    }
   };
+
+  const handleRemovePackage = (index: number) => {
+    if (packages.length > MIN_PACKAGES) {
+      setPackages(packages.filter((_, i) => i !== index));
+    }
+  };
+
+  const handlePackageChange = (index: number, value: string) => {
+    const newPackages = [...packages];
+    newPackages[index] = value;
+    setPackages(newPackages);
+  };
+
+  const handleSubmit = () => {
+    const validPackages = packages.filter((p) => p.trim().length > 0);
+
+    if (validPackages.length < MIN_PACKAGES) {
+      return;
+    }
+
+    const uniquePackages = Array.from(new Set(validPackages));
+    if (uniquePackages.length !== validPackages.length) {
+      return;
+    }
+
+    onCompare(uniquePackages);
+  };
+
+  const canAddMore = packages.length < MAX_PACKAGES;
+  const hasEnoughValidPackages =
+    packages.filter((p) => p.trim().length > 0).length >= MIN_PACKAGES;
+  const hasDuplicates =
+    new Set(packages.filter((p) => p.trim().length > 0)).size !==
+    packages.filter((p) => p.trim().length > 0).length;
 
   return (
     <Stack gap="md">
       <Title order={2}>Compare npm Packages</Title>
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
+
+      {packages.map((value, index) => (
+        <Group key={index} gap="md">
           <TextInput
-            label="Package 1"
+            label={`Package ${index + 1}`}
             placeholder="e.g., react"
             required
-            {...form.getInputProps('package1')}
+            value={value}
+            onChange={(e) => handlePackageChange(index, e.currentTarget.value)}
+            style={{ flex: 1 }}
           />
-          <TextInput
-            label="Package 2"
-            placeholder="e.g., preact"
-            required
-            {...form.getInputProps('package2')}
-          />
-          <Group justify="flex-end">
-            <Button
-              type="submit"
-              leftSection={<IconSearch size={16} />}
-              loading={loading}
+          {packages.length > MIN_PACKAGES && (
+            <ActionIcon
+              color="red"
+              variant="subtle"
+              onClick={() => handleRemovePackage(index)}
+              mt={index === 0 ? 23 : 0}
             >
-              Compare
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+              <IconX size={16} />
+            </ActionIcon>
+          )}
+        </Group>
+      ))}
+
+      {hasDuplicates && (
+        <Text c="red" size="sm">
+          Please enter unique package names
+        </Text>
+      )}
+
+      <Group justify="space-between">
+        {canAddMore && (
+          <Button variant="light" onClick={handleAddPackage}>
+            + Add Package
+          </Button>
+        )}
+        <Button
+          type="submit"
+          leftSection={<IconSearch size={16} />}
+          loading={loading}
+          disabled={!hasEnoughValidPackages || hasDuplicates}
+          onClick={handleSubmit}
+        >
+          Compare
+        </Button>
+      </Group>
     </Stack>
   );
 }
