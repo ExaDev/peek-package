@@ -15,7 +15,7 @@ test.describe("API Integration (Real API)", () => {
   });
 
   test("should fetch real package data from npms.io", async ({ page }) => {
-    const input = page.getByRole("textbox", { name: "Package 1" });
+    const input = page.getByPlaceholder("Search packages...");
     await input.fill("react");
 
     // Wait for autocomplete suggestions and click the "react" option
@@ -27,7 +27,6 @@ test.describe("API Integration (Real API)", () => {
 
     // Should show real package data - allow extra time for real API calls
     // which may involve multiple requests (npms.io + GitHub API)
-    // Use level: 4 to target the h4 package title (not h1 headings in README)
     await expect(
       page.getByRole("heading", { name: "react", level: 4 }),
     ).toBeVisible({
@@ -36,7 +35,7 @@ test.describe("API Integration (Real API)", () => {
   });
 
   test("should handle non-existent package gracefully", async ({ page }) => {
-    const input = page.getByRole("textbox", { name: "Package 1" });
+    const input = page.getByPlaceholder("Search packages...");
     await input.fill("this-package-definitely-does-not-exist-xyz-12345");
     await input.press("Enter");
 

@@ -6,36 +6,29 @@ test.describe("Package Comparison Journey", () => {
     await page.goto("/?msw=true");
   });
 
-  // Helper function to fill and submit a package
-  async function fillAndSubmitPackage(
+  // Helper function to add a package via the top bar input
+  async function addPackage(
     page: import("@playwright/test").Page,
-    inputName: string,
     packageName: string,
   ) {
-    const input = page.getByRole("textbox", { name: inputName });
+    const input = page.getByPlaceholder("Search packages...");
     await input.fill(packageName);
 
-    // Wait for autocomplete and click first option to submit
+    // Wait for autocomplete and click first option to add
     const firstOption = page.getByRole("option").first();
     await expect(firstOption).toBeVisible({ timeout: 5000 });
     await firstOption.click();
+
+    // Wait for input to clear (indicates package was added)
+    await expect(input).toHaveValue("");
   }
 
   test("should compare two packages side by side", async ({ page }) => {
-    // Add a second column
-    const addButton = page.getByRole("button", { name: /add package/i });
-    await addButton.click();
+    // Add two packages
+    await addPackage(page, "react");
+    await addPackage(page, "vue");
 
-    // Wait for second column
-    await expect(
-      page.getByRole("textbox", { name: "Package 2" }),
-    ).toBeVisible();
-
-    // Enter and submit both packages
-    await fillAndSubmitPackage(page, "Package 1", "react");
-    await fillAndSubmitPackage(page, "Package 2", "vue");
-
-    // Wait for both packages to load - check for package name headings (h4 in metrics panel)
+    // Wait for both packages to load - check for package name headings (h4 in column header)
     await expect(
       page.getByRole("heading", { name: "react", level: 4 }),
     ).toBeVisible({
@@ -48,21 +41,22 @@ test.describe("Package Comparison Journey", () => {
     });
   });
 
-  test("should display package metadata after submission", async ({ page }) => {
-    await fillAndSubmitPackage(page, "Package 1", "lodash");
+  test("should display package metadata after adding", async ({ page }) => {
+    await addPackage(page, "lodash");
 
-    // Should show package heading with name (h4 in metrics panel)
+    // Should show package heading with name (h4 in column header)
     await expect(
       page.getByRole("heading", { name: "lodash", level: 4 }),
     ).toBeVisible({
       timeout: 15000,
     });
+
+    // Should show metrics
+    await expect(page.getByText("Weekly Downloads")).toBeVisible();
   });
 
-  test("should show loading or data state after submission", async ({
-    page,
-  }) => {
-    await fillAndSubmitPackage(page, "Package 1", "express");
+  test("should show loading or data state after adding", async ({ page }) => {
+    await addPackage(page, "express");
 
     // Should show package data (loading state is brief, so we check for the result)
     await expect(
@@ -73,20 +67,11 @@ test.describe("Package Comparison Journey", () => {
   });
 
   test("should highlight winner metrics when comparing", async ({ page }) => {
-    // Add second column
-    const addButton = page.getByRole("button", { name: /add package/i });
-    await addButton.click();
+    // Add two popular packages
+    await addPackage(page, "react");
+    await addPackage(page, "preact");
 
-    // Wait for second column
-    await expect(
-      page.getByRole("textbox", { name: "Package 2" }),
-    ).toBeVisible();
-
-    // Compare two popular packages
-    await fillAndSubmitPackage(page, "Package 1", "react");
-    await fillAndSubmitPackage(page, "Package 2", "preact");
-
-    // Wait for both packages to load (h4 in metrics panel, use exact: true to avoid react matching preact)
+    // Wait for both packages to load (h4 in column header, use exact: true to avoid react matching preact)
     await expect(
       page.getByRole("heading", { name: "react", level: 4, exact: true }),
     ).toBeVisible({
@@ -100,23 +85,12 @@ test.describe("Package Comparison Journey", () => {
   });
 
   test("should compare three packages", async ({ page }) => {
-    // Add two more columns
-    const addButton = page.getByRole("button", { name: /add package/i });
-    await addButton.click();
-    await expect(
-      page.getByRole("textbox", { name: "Package 2" }),
-    ).toBeVisible();
-    await addButton.click();
-    await expect(
-      page.getByRole("textbox", { name: "Package 3" }),
-    ).toBeVisible();
+    // Add three packages
+    await addPackage(page, "express");
+    await addPackage(page, "fastify");
+    await addPackage(page, "koa");
 
-    // Enter three packages
-    await fillAndSubmitPackage(page, "Package 1", "express");
-    await fillAndSubmitPackage(page, "Package 2", "fastify");
-    await fillAndSubmitPackage(page, "Package 3", "koa");
-
-    // Wait for all packages to load (h4 in metrics panel)
+    // Wait for all packages to load (h4 in column header)
     await expect(
       page.getByRole("heading", { name: "express", level: 4 }),
     ).toBeVisible({
@@ -134,79 +108,84 @@ test.describe("Package Comparison Journey", () => {
     });
   });
 
-  test("should update comparison when changing a package", async ({ page }) => {
-    // Add second column
-    const addButton = page.getByRole("button", { name: /add package/i });
-    await addButton.click();
-    await expect(
-      page.getByRole("textbox", { name: "Package 2" }),
-    ).toBeVisible();
-
-    // Enter initial packages
-    await fillAndSubmitPackage(page, "Package 1", "moment");
-    await fillAndSubmitPackage(page, "Package 2", "dayjs");
-
-    // Wait for data (h4 in metrics panel)
-    await expect(
-      page.getByRole("heading", { name: "moment", level: 4 }),
-    ).toBeVisible({
-      timeout: 15000,
-    });
-
-    // Change second package
-    const input2 = page.getByRole("textbox", { name: "Package 2" });
-    await input2.clear();
-    await input2.fill("date-fns");
-    const firstOption = page.getByRole("option").first();
-    await expect(firstOption).toBeVisible({ timeout: 5000 });
-    await firstOption.click();
-
-    // Wait for new data (h4 in metrics panel)
-    await expect(
-      page.getByRole("heading", { name: "date-fns", level: 4 }),
-    ).toBeVisible({
-      timeout: 15000,
-    });
-  });
-
-  test("should preserve comparison when removing middle column", async ({
+  test("should remove a package when clicking remove button", async ({
     page,
   }) => {
-    // Add two more columns
-    const addButton = page.getByRole("button", { name: /add package/i });
-    await addButton.click();
-    await expect(
-      page.getByRole("textbox", { name: "Package 2" }),
-    ).toBeVisible();
-    await addButton.click();
-    await expect(
-      page.getByRole("textbox", { name: "Package 3" }),
-    ).toBeVisible();
+    // Add two packages
+    await addPackage(page, "lodash");
+    await addPackage(page, "underscore");
 
-    // Enter packages
-    await fillAndSubmitPackage(page, "Package 1", "lodash");
-    await fillAndSubmitPackage(page, "Package 2", "underscore");
-    await fillAndSubmitPackage(page, "Package 3", "ramda");
-
-    // Wait for data to load (h4 in metrics panel)
+    // Wait for both to load
     await expect(
       page.getByRole("heading", { name: "lodash", level: 4 }),
     ).toBeVisible({
       timeout: 15000,
     });
-
-    // Remove middle column
-    const removeButton = page.getByRole("button", {
-      name: /remove package 2/i,
+    await expect(
+      page.getByRole("heading", { name: "underscore", level: 4 }),
+    ).toBeVisible({
+      timeout: 15000,
     });
+
+    // Remove lodash
+    const removeButton = page.getByRole("button", { name: /remove lodash/i });
     await removeButton.click();
 
-    // Should now have two columns with lodash and ramda
-    await expect(page.getByRole("textbox", { name: "Package 1" })).toHaveValue(
-      "lodash",
-    );
-    await expect(page.getByRole("textbox", { name: "Package 2" })).toHaveValue(
-      "ramda",
-    );
+    // lodash should be gone, underscore should remain
+    await expect(
+      page.getByRole("heading", { name: "lodash", level: 4 }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "underscore", level: 4 }),
+    ).toBeVisible();
+  });
+
+  test("should clear all packages when clicking clear button", async ({
+    page,
+  }) => {
+    // Add two packages
+    await addPackage(page, "react");
+    await addPackage(page, "vue");
+
+    // Wait for data to load
+    await expect(
+      page.getByRole("heading", { name: "react", level: 4 }),
+    ).toBeVisible({
+      timeout: 15000,
+    });
+
+    // Click clear button
+    const clearButton = page.getByRole("button", { name: "Clear" });
+    await clearButton.click();
+
+    // Should show empty state
+    await expect(page.getByText("Compare npm packages")).toBeVisible();
+  });
+
+  test("should prevent adding duplicate packages", async ({ page }) => {
+    // Add react
+    await addPackage(page, "react");
+
+    // Wait for it to load
+    await expect(
+      page.getByRole("heading", { name: "react", level: 4 }),
+    ).toBeVisible({
+      timeout: 15000,
+    });
+
+    // Try to add react again
+    const input = page.getByPlaceholder("Search packages...");
+    await input.fill("react");
+
+    const firstOption = page.getByRole("option").first();
+    await expect(firstOption).toBeVisible({ timeout: 5000 });
+    await firstOption.click();
+
+    // Should still only have one react column
+    const reactHeadings = page.getByRole("heading", {
+      name: "react",
+      level: 4,
+    });
+    await expect(reactHeadings).toHaveCount(1);
   });
 });

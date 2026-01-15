@@ -17,7 +17,7 @@ test.describe("Graceful Degradation", () => {
     await page.goto("/?msw=true");
 
     // Search and select a package
-    const input = page.getByRole("textbox", { name: "Package 1" });
+    const input = page.getByPlaceholder("Search packages...");
     await input.fill("react");
 
     const firstOption = page.getByRole("option").first();
@@ -25,7 +25,6 @@ test.describe("Graceful Degradation", () => {
     await firstOption.click();
 
     // Package should still load with npms.io data even though GitHub failed
-    // Use level: 4 to target the h4 package title (not h1 headings in README)
     await expect(
       page.getByRole("heading", { name: "react", level: 4 }),
     ).toBeVisible({
@@ -72,7 +71,7 @@ test.describe("Graceful Degradation", () => {
     await page.goto("/");
 
     // Search and select a package
-    const input = page.getByRole("textbox", { name: "Package 1" });
+    const input = page.getByPlaceholder("Search packages...");
     await input.fill("react");
 
     const firstOption = page.getByRole("option").first();
@@ -83,7 +82,10 @@ test.describe("Graceful Degradation", () => {
     await page.waitForTimeout(3000);
     await expect(input).toBeVisible();
 
-    // The card should show the empty placeholder (since data fetch failed)
-    await expect(page.getByText("Enter a package name")).toBeVisible();
+    // Package was added but data fetch failed, so the column header should still show
+    // The metrics panel will show loading or error state
+    await expect(
+      page.getByRole("heading", { name: "react", level: 4 }),
+    ).toBeVisible();
   });
 });

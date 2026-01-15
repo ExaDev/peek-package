@@ -1,33 +1,28 @@
-import { Box, Paper, Title } from "@mantine/core";
+import { ActionIcon, Box, Group, Paper, Title } from "@mantine/core";
+import { IconX } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import type { PackageStats } from "@/types/adapter";
-import { PackageAutocompleteInput } from "./PackageAutocompleteInput";
 import { PackageMetricsPanel } from "./PackageMetricsPanel";
-import type { PackageColumnState } from "@/hooks/usePackageColumn";
 
 interface PackageColumnProps {
-  columnState: PackageColumnState;
-  index: number;
+  packageName: string;
   packageStats: PackageStats | null;
   isLoading: boolean;
   showRemove: boolean;
   winnerMetrics?: {
     [key in keyof PackageStats]?: boolean;
   };
-  onUpdate: (updates: Partial<PackageColumnState>) => void;
   onRemove: () => void;
 }
 
 export function PackageColumn({
-  columnState,
-  index,
+  packageName,
   packageStats,
   isLoading,
   showRemove,
   winnerMetrics = {},
-  onUpdate,
   onRemove,
 }: PackageColumnProps) {
   return (
@@ -39,22 +34,23 @@ export function PackageColumn({
         height: "100%",
       }}
     >
-      {/* Autocomplete Input */}
-      <PackageAutocompleteInput
-        index={index}
-        value={columnState.value}
-        searchQuery={columnState.searchQuery}
-        onChange={(newValue) => {
-          // Update display value and search query as user types
-          onUpdate({ value: newValue, searchQuery: newValue });
-        }}
-        onSubmit={(submittedValue) => {
-          // Update submittedValue to trigger API fetch
-          onUpdate({ value: submittedValue, submittedValue });
-        }}
-        onRemove={showRemove ? onRemove : undefined}
-        showRemove={showRemove}
-      />
+      {/* Package Header with Remove Button */}
+      <Paper p="sm" radius="md" withBorder>
+        <Group justify="space-between" wrap="nowrap">
+          <Title order={4}>{packageName}</Title>
+          {showRemove && (
+            <ActionIcon
+              color="red"
+              variant="subtle"
+              onClick={onRemove}
+              size="sm"
+              aria-label={`Remove ${packageName}`}
+            >
+              <IconX size={16} />
+            </ActionIcon>
+          )}
+        </Group>
+      </Paper>
 
       {/* Metrics Panel */}
       <PackageMetricsPanel
