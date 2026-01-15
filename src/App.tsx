@@ -9,26 +9,30 @@ import {
 import { IconAlertCircle } from '@tabler/icons-react';
 import { PackageInput } from './components/comparison/PackageInput';
 import { ComparisonTable } from './components/comparison/ComparisonTable';
-import { ReadmeDisplay } from './components/ui/ReadmeDisplay';
+import { ReadmeAccordion } from './components/ui/ReadmeAccordion';
 import { SettingsModal } from './components/ui/SettingsModal';
 import { usePackageComparison } from './hooks/usePackageComparison';
 import { ComparatorService } from './services/comparator';
 
 function App() {
-  const [package1, setPackage1] = useState('');
-  const [package2, setPackage2] = useState('');
+  const [packageNames, setPackageNames] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
 
-  const { isLoading, isError, error, package1: pkg1, package2: pkg2 } =
-    usePackageComparison(package1, package2);
+  const { isLoading, isError, errors, packages } =
+    usePackageComparison(packageNames);
 
   const comparator = new ComparatorService();
-  const comparison = pkg1 && pkg2 ? comparator.compare(pkg1, pkg2) : null;
+  const comparison = packages.length > 0 ? comparator.compareMany(packages) : null;
 
-  const handleCompare = (p1: string, p2: string) => {
-    setPackage1(p1);
-    setPackage2(p2);
+  const handleCompare = (names: string[]) => {
+    setPackageNames(names);
     setShowComparison(true);
+  };
+
+  const getErrorMessage = () => {
+    if (errors.length === 0) return 'Failed to load package data';
+    if (errors.length === 1) return errors[0].message;
+    return `${errors.length} packages failed to load`;
   };
 
   return (
@@ -47,7 +51,7 @@ function App() {
             title="Error"
             color="red"
           >
-            {error?.message || 'Failed to load package data'}
+            {getErrorMessage()}
           </Alert>
         )}
 
@@ -57,18 +61,7 @@ function App() {
 
             <Stack gap="md">
               <Title order={3}>READMEs</Title>
-              {pkg1?.github?.readme && (
-                <ReadmeDisplay
-                  packageName={pkg1.name}
-                  readme={pkg1.github.readme}
-                />
-              )}
-              {pkg2?.github?.readme && (
-                <ReadmeDisplay
-                  packageName={pkg2.name}
-                  readme={pkg2.github.readme}
-                />
-              )}
+              <ReadmeAccordion packages={packages} />
             </Stack>
           </>
         )}
