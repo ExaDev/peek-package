@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
   Anchor,
@@ -95,6 +95,16 @@ export function PackageMetricsPanel({
   onRefreshGithub,
 }: PackageMetricsPanelProps) {
   const [maintainersExpanded, setMaintainersExpanded] = useState(false);
+  const [hasOverflow, setHasOverflow] = useState(false);
+  const maintainersRef = useRef<HTMLDivElement>(null);
+
+  // Detect if maintainers overflow the container
+  useEffect(() => {
+    const el = maintainersRef.current;
+    if (el && !maintainersExpanded) {
+      setHasOverflow(el.scrollHeight > el.clientHeight);
+    }
+  }, [packageStats?.maintainers, maintainersExpanded]);
 
   if (isLoading) {
     return (
@@ -456,7 +466,7 @@ export function PackageMetricsPanel({
                         <Text size="xs" c="dimmed">
                           Maintainers ({packageStats.maintainers.length})
                         </Text>
-                        {packageStats.maintainers.length > 3 && (
+                        {(hasOverflow || maintainersExpanded) && (
                           <UnstyledButton
                             onClick={() => {
                               setMaintainersExpanded(!maintainersExpanded);
@@ -482,6 +492,7 @@ export function PackageMetricsPanel({
                         )}
                       </Group>
                       <Box
+                        ref={maintainersRef}
                         style={{
                           overflow: maintainersExpanded ? "visible" : "hidden",
                           maxHeight: maintainersExpanded ? "none" : "32px",
