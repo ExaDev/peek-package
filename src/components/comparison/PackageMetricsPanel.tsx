@@ -1,5 +1,7 @@
 import {
+  Accordion,
   ActionIcon,
+  Anchor,
   Badge,
   Box,
   Card,
@@ -14,8 +16,11 @@ import type { PackageStats } from "@/types/adapter";
 import {
   IconBrandGithub,
   IconBrandNpm,
+  IconCode,
+  IconExternalLink,
   IconRefresh,
   IconTrophy,
+  IconUser,
 } from "@tabler/icons-react";
 
 interface PackageMetricsPanelProps {
@@ -35,6 +40,37 @@ function formatNumber(value: number | undefined): string {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
   if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
   return value.toString();
+}
+
+function formatSize(sizeKb: number | undefined): string {
+  if (sizeKb === undefined) return "N/A";
+  if (sizeKb >= 1024) return `${(sizeKb / 1024).toFixed(1)} MB`;
+  return `${String(sizeKb)} KB`;
+}
+
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatRelativeDate(dateStr: string | undefined): string {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${String(diffDays)} days ago`;
+  if (diffDays < 30) return `${String(Math.floor(diffDays / 7))} weeks ago`;
+  if (diffDays < 365) return `${String(Math.floor(diffDays / 30))} months ago`;
+  return `${String(Math.floor(diffDays / 365))} years ago`;
 }
 
 function getScoreColor(score: number | undefined): "green" | "yellow" | "red" {
@@ -92,22 +128,47 @@ export function PackageMetricsPanel({
   const isDownloadsWinner = winnerMetrics.weeklyDownloads;
   const isStarsWinner = winnerMetrics.stars;
   const isForksWinner = winnerMetrics.forks;
+  const isDependentsWinner = winnerMetrics.dependentsCount;
+
+  const hasAuthorOrMaintainers =
+    packageStats.author || (packageStats.maintainers?.length ?? 0) > 0;
+  const hasKeywords = (packageStats.npm?.keywords.length ?? 0) > 0;
+  const hasLinks = packageStats.links;
+  const hasEvaluation = packageStats.evaluation;
 
   return (
     <Card shadow="sm" padding="lg" withBorder>
       <Stack gap="md">
-        {/* Quality Score Badge */}
-        <Group justify="space-between">
-          <Text size="sm" c="dimmed" lineClamp={2} style={{ flex: 1 }}>
-            {packageStats.description || "No description available"}
-          </Text>
-          <Badge
-            color={getScoreColor(packageStats.quality)}
-            variant="light"
-            leftSection={isQualityWinner ? <IconTrophy size={12} /> : undefined}
-          >
-            {packageStats.quality ?? "N/A"}/100
-          </Badge>
+        {/* Header with version and final score */}
+        <Group justify="space-between" align="flex-start">
+          <Stack gap={2}>
+            <Text size="sm" c="dimmed" lineClamp={2}>
+              {packageStats.description || "No description available"}
+            </Text>
+            <Group gap="xs">
+              <Badge variant="outline" size="sm">
+                v{packageStats.version}
+              </Badge>
+              {packageStats.github?.language && (
+                <Badge
+                  variant="light"
+                  size="sm"
+                  leftSection={<IconCode size={10} />}
+                >
+                  {packageStats.github.language}
+                </Badge>
+              )}
+            </Group>
+          </Stack>
+          <Tooltip label="Overall npms.io score">
+            <Badge
+              color={getScoreColor(packageStats.finalScore)}
+              variant="filled"
+              size="lg"
+            >
+              {packageStats.finalScore ?? "N/A"}/100
+            </Badge>
+          </Tooltip>
         </Group>
 
         <Divider />
@@ -145,6 +206,17 @@ export function PackageMetricsPanel({
                 {isDownloadsWinner && <IconTrophy size={12} color="orange" />}
                 <Text size="sm" fw={isDownloadsWinner ? 700 : 400}>
                   {formatNumber(packageStats.weeklyDownloads)}
+                </Text>
+              </Group>
+            </Group>
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                Dependents
+              </Text>
+              <Group gap={4}>
+                {isDependentsWinner && <IconTrophy size={12} color="orange" />}
+                <Text size="sm" fw={isDependentsWinner ? 700 : 400}>
+                  {formatNumber(packageStats.dependentsCount)}
                 </Text>
               </Group>
             </Group>
@@ -259,8 +331,331 @@ export function PackageMetricsPanel({
               </Text>
               <Text size="sm">{formatNumber(packageStats.openIssues)}</Text>
             </Group>
+            {packageStats.github?.pushedAt && (
+              <Group justify="space-between">
+                <Text size="xs" c="dimmed">
+                  Last Push
+                </Text>
+                <Tooltip label={formatDate(packageStats.github.pushedAt)}>
+                  <Text size="sm">
+                    {formatRelativeDate(packageStats.github.pushedAt)}
+                  </Text>
+                </Tooltip>
+              </Group>
+            )}
           </Stack>
         </Box>
+
+        {/* Accordion Sections for Additional Data */}
+        <Accordion variant="separated" radius="sm">
+          {/* Package Info Section */}
+          {(hasAuthorOrMaintainers || hasKeywords || hasLinks) && (
+            <Accordion.Item value="package-info">
+              <Accordion.Control icon={<IconUser size={16} />}>
+                <Text size="sm">Package Info</Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="xs">
+                  {/* Author */}
+                  {packageStats.author && (
+                    <Group justify="space-between">
+                      <Text size="xs" c="dimmed">
+                        Author
+                      </Text>
+                      <Text size="sm">{packageStats.author.name}</Text>
+                    </Group>
+                  )}
+
+                  {/* Maintainers */}
+                  {(packageStats.maintainers?.length ?? 0) > 0 && (
+                    <Group justify="space-between" align="flex-start">
+                      <Text size="xs" c="dimmed">
+                        Maintainers
+                      </Text>
+                      <Text size="sm" ta="right">
+                        {packageStats.maintainers
+                          ?.slice(0, 3)
+                          .map((m) => m.name)
+                          .join(", ")}
+                        {(packageStats.maintainers?.length ?? 0) > 3 &&
+                          ` +${String((packageStats.maintainers?.length ?? 0) - 3)} more`}
+                      </Text>
+                    </Group>
+                  )}
+
+                  {/* Keywords */}
+                  {hasKeywords && (
+                    <Box>
+                      <Text size="xs" c="dimmed" mb={4}>
+                        Keywords
+                      </Text>
+                      <Group gap={4}>
+                        {packageStats.npm?.keywords.slice(0, 5).map((kw) => (
+                          <Badge key={kw} size="xs" variant="outline">
+                            {kw}
+                          </Badge>
+                        ))}
+                        {(packageStats.npm?.keywords.length ?? 0) > 5 && (
+                          <Badge size="xs" variant="light">
+                            +
+                            {String(
+                              (packageStats.npm?.keywords.length ?? 0) - 5,
+                            )}{" "}
+                            more
+                          </Badge>
+                        )}
+                      </Group>
+                    </Box>
+                  )}
+
+                  {/* Links */}
+                  {hasLinks && (
+                    <Box>
+                      <Text size="xs" c="dimmed" mb={4}>
+                        Links
+                      </Text>
+                      <Group gap="xs">
+                        {packageStats.links?.npm && (
+                          <Anchor
+                            href={packageStats.links.npm}
+                            target="_blank"
+                            size="xs"
+                          >
+                            <Group gap={2}>
+                              npm <IconExternalLink size={10} />
+                            </Group>
+                          </Anchor>
+                        )}
+                        {packageStats.links?.repository && (
+                          <Anchor
+                            href={packageStats.links.repository}
+                            target="_blank"
+                            size="xs"
+                          >
+                            <Group gap={2}>
+                              Repository <IconExternalLink size={10} />
+                            </Group>
+                          </Anchor>
+                        )}
+                        {packageStats.links?.homepage && (
+                          <Anchor
+                            href={packageStats.links.homepage}
+                            target="_blank"
+                            size="xs"
+                          >
+                            <Group gap={2}>
+                              Homepage <IconExternalLink size={10} />
+                            </Group>
+                          </Anchor>
+                        )}
+                        {packageStats.links?.bugs && (
+                          <Anchor
+                            href={packageStats.links.bugs}
+                            target="_blank"
+                            size="xs"
+                          >
+                            <Group gap={2}>
+                              Issues <IconExternalLink size={10} />
+                            </Group>
+                          </Anchor>
+                        )}
+                      </Group>
+                    </Box>
+                  )}
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          )}
+
+          {/* Detailed Scores Section */}
+          {hasEvaluation && (
+            <Accordion.Item value="detailed-scores">
+              <Accordion.Control icon={<IconTrophy size={16} />}>
+                <Text size="sm">Detailed Scores</Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  {/* Quality Breakdown */}
+                  <Box>
+                    <Text size="xs" fw={500} mb={4}>
+                      Quality
+                    </Text>
+                    <Stack gap={2}>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Tests
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.quality.tests ?? 0}%
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Health
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.quality.health ?? 0}%
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Carefulness
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.quality.carefulness ?? 0}%
+                        </Badge>
+                      </Group>
+                    </Stack>
+                  </Box>
+
+                  {/* Popularity Breakdown */}
+                  <Box>
+                    <Text size="xs" fw={500} mb={4}>
+                      Popularity
+                    </Text>
+                    <Stack gap={2}>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Community Interest
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.popularity
+                            .communityInterest ?? 0}
+                          %
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Downloads Trend
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.popularity
+                            .downloadsAcceleration ?? 0}
+                          %
+                        </Badge>
+                      </Group>
+                    </Stack>
+                  </Box>
+
+                  {/* Maintenance Breakdown */}
+                  <Box>
+                    <Text size="xs" fw={500} mb={4}>
+                      Maintenance
+                    </Text>
+                    <Stack gap={2}>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Release Frequency
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.maintenance
+                            .releasesFrequency ?? 0}
+                          %
+                        </Badge>
+                      </Group>
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Commit Frequency
+                        </Text>
+                        <Badge size="xs" variant="light">
+                          {packageStats.evaluation?.maintenance
+                            .commitsFrequency ?? 0}
+                          %
+                        </Badge>
+                      </Group>
+                    </Stack>
+                  </Box>
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          )}
+
+          {/* More npm Stats */}
+          {((packageStats.npm?.devDependencies.length ?? 0) > 0 ||
+            (packageStats.npm
+              ? Object.keys(packageStats.npm.peerDependencies).length
+              : 0) > 0) && (
+            <Accordion.Item value="more-npm">
+              <Accordion.Control icon={<IconBrandNpm size={16} />}>
+                <Text size="sm">More npm Stats</Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="xs">
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      Dev Dependencies
+                    </Text>
+                    <Text size="sm">
+                      {packageStats.npm?.devDependencies.length ?? 0}
+                    </Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      Peer Dependencies
+                    </Text>
+                    <Text size="sm">
+                      {packageStats.npm
+                        ? Object.keys(packageStats.npm.peerDependencies).length
+                        : 0}
+                    </Text>
+                  </Group>
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          )}
+
+          {/* More GitHub Stats */}
+          {packageStats.github && (
+            <Accordion.Item value="more-github">
+              <Accordion.Control icon={<IconBrandGithub size={16} />}>
+                <Text size="sm">More GitHub Stats</Text>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="xs">
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      Watchers
+                    </Text>
+                    <Text size="sm">
+                      {formatNumber(packageStats.github.subscribers)}
+                    </Text>
+                  </Group>
+                  {packageStats.github.size !== undefined &&
+                    packageStats.github.size > 0 && (
+                      <Group justify="space-between">
+                        <Text size="xs" c="dimmed">
+                          Repo Size
+                        </Text>
+                        <Text size="sm">
+                          {formatSize(packageStats.github.size)}
+                        </Text>
+                      </Group>
+                    )}
+                  {packageStats.github.createdAt && (
+                    <Group justify="space-between">
+                      <Text size="xs" c="dimmed">
+                        Created
+                      </Text>
+                      <Text size="sm">
+                        {formatDate(packageStats.github.createdAt)}
+                      </Text>
+                    </Group>
+                  )}
+                  {packageStats.github.updatedAt && (
+                    <Group justify="space-between">
+                      <Text size="xs" c="dimmed">
+                        Last Updated
+                      </Text>
+                      <Text size="sm">
+                        {formatRelativeDate(packageStats.github.updatedAt)}
+                      </Text>
+                    </Group>
+                  )}
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          )}
+        </Accordion>
       </Stack>
     </Card>
   );
