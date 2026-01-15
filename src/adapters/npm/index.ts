@@ -1,6 +1,10 @@
-import type { EcosystemAdapter, PkgCompareRequest, PackageStats } from '@/types/adapter';
-import { NpmsClient } from './npms-client';
-import { GithubClient } from './github-client';
+import type {
+  EcosystemAdapter,
+  PrePackageRequest,
+  PackageStats,
+} from "@/types/adapter";
+import { NpmsClient } from "./npms-client";
+import { GithubClient } from "./github-client";
 
 /**
  * npm ecosystem adapter implementing EcosystemAdapter interface
@@ -18,62 +22,61 @@ export class NpmAdapter implements EcosystemAdapter {
   /**
    * Fetch package statistics from all sources
    */
-  async fetch(request: PkgCompareRequest): Promise<PackageStats> {
+  async fetch(request: PrePackageRequest): Promise<PackageStats> {
     const npmsData = await this.npmsClient.fetchPackage(request.packageName);
 
-    // Parse the nested npms.io response structure
-    const collected = (npmsData as any).collected || {};
-    const metadata = collected.metadata || {};
-    const links = metadata.links || {};
-    const score = (npmsData as any).score?.detail || {};
-    const npmData = collected.npm || {};
-    const githubData = collected.github || {};
+    // Extract from the npms.io response structure
+    const { collected, score } = npmsData;
+    const { metadata, npm: npmData, github: githubData } = collected;
+    const { links } = metadata;
 
     const stats: PackageStats = {
       name: metadata.name || request.packageName,
-      description: metadata.description || null,
-      version: metadata.version || '0.0.0',
-      homepage: links.homepage || null,
-      repository: links.repository || null,
-      quality: score.quality,
-      popularity: score.popularity,
-      maintenance: score.maintenance,
-      weeklyDownloads: npmData.downloads?.[0]?.count,
+      description: metadata.description ?? null,
+      version: metadata.version || "0.0.0",
+      homepage: links.homepage ?? null,
+      repository: links.repository ?? null,
+      quality: score.detail.quality,
+      popularity: score.detail.popularity,
+      maintenance: score.detail.maintenance,
+      weeklyDownloads: npmData.downloads[0]?.count,
     };
 
     stats.npm = {
-      dependencies: Object.keys(metadata.dependencies || {}),
-      devDependencies: Object.keys(metadata.devDependencies || {}),
-      peerDependencies: metadata.peerDependencies || {},
-      license: metadata.license || 'UNKNOWN',
+      dependencies: Object.keys(metadata.dependencies),
+      devDependencies: Object.keys(metadata.devDependencies),
+      peerDependencies: metadata.peerDependencies,
+      license: metadata.license || "UNKNOWN",
       size: 0,
-      keywords: metadata.keywords || [],
+      keywords: metadata.keywords,
     };
 
     // Use GitHub data from npms.io if available
-    if (githubData.starsCount !== undefined) {
+    if (githubData) {
       stats.stars = githubData.starsCount;
       stats.forks = githubData.forksCount;
-      stats.openIssues = githubData.issues?.openCount;
+      stats.openIssues = githubData.issues.openCount;
 
       stats.github = {
         stars: githubData.starsCount,
         forks: githubData.forksCount,
-        openIssues: githubData.issues?.openCount || 0,
-        subscribers: githubData.subscribersCount || 0,
-        createdAt: '', // Not available in npms.io
-        updatedAt: '',
-        pushedAt: '',
-        defaultBranch: 'main',
+        openIssues: githubData.issues.openCount,
+        subscribers: githubData.subscribersCount,
+        createdAt: "", // Not available in npms.io
+        updatedAt: "",
+        pushedAt: "",
+        defaultBranch: "main",
         readme: null,
-        homepageUrl: links.homepage || '',
+        homepageUrl: links.homepage ?? "",
       };
     }
 
     // Try to fetch additional data from GitHub API if repository URL exists
     if (links.repository) {
       try {
-        const githubRepo = await this.githubClient.fetchRepository(links.repository);
+        const githubRepo = await this.githubClient.fetchRepository(
+          links.repository,
+        );
 
         stats.stars = githubRepo.stargazers_count;
         stats.forks = githubRepo.forks_count;
@@ -89,7 +92,7 @@ export class NpmAdapter implements EcosystemAdapter {
           pushedAt: githubRepo.pushed_at,
           defaultBranch: githubRepo.default_branch,
           readme: null,
-          homepageUrl: githubRepo.homepage || '',
+          homepageUrl: githubRepo.homepage || "",
         };
 
         const readme = await this.githubClient.fetchReadme(links.repository);
@@ -97,7 +100,7 @@ export class NpmAdapter implements EcosystemAdapter {
           stats.github.readme = this.base64ToString(readme.content);
         }
       } catch (error) {
-        console.warn('Failed to fetch GitHub data:', error);
+        console.warn("Failed to fetch GitHub data:", error);
       }
     }
 
@@ -108,7 +111,7 @@ export class NpmAdapter implements EcosystemAdapter {
    * Check if adapter supports the ecosystem
    */
   supports(ecosystem: string): boolean {
-    return ecosystem === 'npm';
+    return ecosystem === "npm";
   }
 
   /**
