@@ -69,6 +69,48 @@ export interface GithubSpecificStats {
 }
 
 /**
+ * Comparison result for N packages
+ */
+export interface NPackageComparison {
+  packages: PackageStats[]
+  metricComparisons: MetricComparison[]
+}
+
+/**
+ * Metric comparison across N packages
+ */
+export interface MetricComparison {
+  name: string
+  values: Array<{
+    packageIndex: number
+    packageName: string
+    value: number | string | null
+    isWinner: boolean
+    percentDiff?: number
+  }>
+}
+
+/**
+ * Legacy comparison result for 2 packages (deprecated, kept for compatibility)
+ */
+export interface ComparisonResult {
+  package1: PackageStats
+  package2: PackageStats
+  differences: PackageDifference[]
+}
+
+/**
+ * Single metric difference (deprecated)
+ */
+export interface PackageDifference {
+  metric: string
+  package1Value: number | string | null
+  package2Value: number | string | null
+  winner: 'package1' | 'package2' | 'tie' | 'none'
+  percentageDiff?: number
+}
+
+/**
  * Ecosystem adapter interface
  * All adapters must implement this interface
  */
