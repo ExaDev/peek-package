@@ -110,8 +110,20 @@ export function useUrlSync(submittedPackages: string[]) {
 
 /**
  * Get initial packages from URL (call once on app load)
+ * Deduplicates packages (case-insensitive, preserving first occurrence)
  */
 export function getInitialPackagesFromUrl(): string[] {
   const urlPackages = parsePackagesFromUrl();
-  return urlPackages.map((pkg) => pkg.name);
+  const seen = new Set<string>();
+  const uniquePackages: string[] = [];
+
+  for (const pkg of urlPackages) {
+    const lowerName = pkg.name.toLowerCase();
+    if (!seen.has(lowerName)) {
+      seen.add(lowerName);
+      uniquePackages.push(pkg.name);
+    }
+  }
+
+  return uniquePackages;
 }

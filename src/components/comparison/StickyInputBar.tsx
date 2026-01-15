@@ -153,8 +153,12 @@ export function StickyInputBar({
             {/* Package badges */}
             {packages.length > 0 && (
               <Group gap={4} wrap="wrap">
-                {packages.map((pkg) => (
-                  <Badge key={pkg} variant="light" color="brand">
+                {packages.map((pkg, index) => (
+                  <Badge
+                    key={`${pkg}-${String(index)}`}
+                    variant="light"
+                    color="brand"
+                  >
                     {pkg}
                   </Badge>
                 ))}
