@@ -1,12 +1,14 @@
-import { Box, Code, Container, Group, Stack, Text, Title } from '@mantine/core';
+import { Code, Container, Group, Stack, Text, Title } from "@mantine/core";
+import { IconSearch } from "@tabler/icons-react";
+import { ThemeIcon } from "@mantine/core";
 
 export function EmptyState() {
   return (
     <Container size="sm" py="xl">
       <Stack align="center" gap="lg">
-        <Box c="brand" style={{ fontSize: 80, textAlign: 'center' }}>
-          🔍
-        </Box>
+        <ThemeIcon size={80} radius="xl" color="brand" variant="light">
+          <IconSearch size={40} />
+        </ThemeIcon>
         <Title order={2} ta="center">
           Compare npm packages with confidence
         </Title>
