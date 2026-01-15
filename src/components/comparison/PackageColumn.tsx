@@ -1,3 +1,7 @@
+import { Accordion, Text } from "@mantine/core";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 import type { PackageStats } from "@/types/adapter";
 import { PackageAutocompleteInput } from "./PackageAutocompleteInput";
 import { PackageMetricsPanel } from "./PackageMetricsPanel";
@@ -60,6 +64,27 @@ export function PackageColumn({
           winnerMetrics={winnerMetrics}
         />
       </div>
+
+      {/* README Section */}
+      {packageStats?.github?.readme && (
+        <Accordion variant="filled" radius="md">
+          <Accordion.Item value="readme">
+            <Accordion.Control>
+              <Text fw={500}>README</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <div style={{ maxHeight: "400px", overflow: "auto" }}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeSanitize]}
+                >
+                  {packageStats.github.readme}
+                </ReactMarkdown>
+              </div>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      )}
     </div>
   );
 }

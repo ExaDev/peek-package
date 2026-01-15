@@ -4,7 +4,6 @@ import { usePackageColumn } from "@/hooks/usePackageColumn";
 import { usePackageComparison } from "@/hooks/usePackageComparison";
 import { PackageColumn } from "./PackageColumn";
 import { AddColumnButton } from "./AddColumnButton";
-import { ReadmeAccordion } from "@/components/ui/ReadmeAccordion";
 
 const MOBILE_BREAKPOINT = 1024;
 
@@ -95,11 +94,6 @@ export function PackageComparisonLayout() {
 
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
 
-  // Check if any packages have READMEs to show
-  const packagesWithData = packages.filter((pkg) =>
-    packageNames.includes(pkg.name),
-  );
-
   if (isMobile) {
     // Mobile layout: Horizontal scroll
     return (
@@ -148,11 +142,6 @@ export function PackageComparisonLayout() {
             currentColumnCount={columns.length}
           />
         </ScrollArea.Autosize>
-
-        {/* README Section */}
-        {packagesWithData.length > 0 && (
-          <ReadmeAccordion packages={packagesWithData} />
-        )}
       </Stack>
     );
   }
@@ -210,11 +199,6 @@ export function PackageComparisonLayout() {
           />
         </Box>
       </Box>
-
-      {/* README Section */}
-      {packagesWithData.length > 0 && (
-        <ReadmeAccordion packages={packagesWithData} />
-      )}
     </Stack>
   );
 }
