@@ -146,7 +146,7 @@ export function PackageComparisonLayout() {
 
   // Desktop layout: Flex wrap with centered columns
   return (
-    <Flex gap="xl" align="flex-start" justify="center">
+    <Box pos="relative">
       <Flex gap="xl" wrap="wrap" justify="center">
         {columns.map((col) => {
           const packageName = col.value.trim();
@@ -177,11 +177,18 @@ export function PackageComparisonLayout() {
           );
         })}
       </Flex>
-      <AddColumnButton
-        onClick={addColumn}
-        disabled={!canAddMore}
-        currentColumnCount={columns.length}
-      />
-    </Flex>
+      <Box
+        pos="absolute"
+        right="0"
+        top="50%"
+        style={{ transform: "translateY(-50%)" }}
+      >
+        <AddColumnButton
+          onClick={addColumn}
+          disabled={!canAddMore}
+          currentColumnCount={columns.length}
+        />
+      </Box>
+    </Box>
   );
 }
