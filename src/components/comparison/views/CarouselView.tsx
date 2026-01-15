@@ -126,13 +126,10 @@ export function CarouselView({
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
   const columnCount = packages.length;
 
-  const useFlexibleLayout = columnCount <= 2;
-  const columnMinWidth = isMobile ? 320 : useFlexibleLayout ? 400 : 450;
+  const columnWidth = isMobile ? 320 : 450;
 
-  // Common column styles
-  const gridColumnStyle = useFlexibleLayout
-    ? `repeat(${String(columnCount)}, minmax(${String(columnMinWidth)}px, 1fr))`
-    : `repeat(${String(columnCount)}, ${String(columnMinWidth)}px)`;
+  // Fixed column width for consistent sizing regardless of count
+  const gridColumnStyle = `repeat(${String(columnCount)}, ${String(columnWidth)}px)`;
 
   return (
     <ScrollArea
@@ -146,8 +143,6 @@ export function CarouselView({
           flexDirection: "column",
           padding: "var(--mantine-spacing-md)",
           minHeight: "100%",
-          width: useFlexibleLayout ? "100%" : undefined,
-          minWidth: useFlexibleLayout ? undefined : "min-content",
         }}
       >
         {/* Metrics section - uses CSS Grid for cross-column alignment */}
@@ -157,6 +152,8 @@ export function CarouselView({
             gridTemplateColumns: gridColumnStyle,
             gridTemplateRows: `repeat(${String(TOTAL_ROWS)}, auto)`,
             columnGap: "var(--mantine-spacing-lg)",
+            width: "fit-content",
+            margin: "0 auto",
           }}
         >
           {packages.map((pkg, colIndex) => {
@@ -289,6 +286,8 @@ export function CarouselView({
             gridTemplateColumns: gridColumnStyle,
             columnGap: "var(--mantine-spacing-lg)",
             alignItems: "start",
+            width: "fit-content",
+            margin: "0 auto",
             marginTop: "calc(-1 * var(--mantine-radius-default))",
           }}
         >
