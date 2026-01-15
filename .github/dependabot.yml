@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "*eslint*"
+          - "*prettier*"
+          - "@vitest/*"
+          - "vitest"
+          - "@vitejs/*"
+          - "typescript"
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "*eslint*"
+          - "*prettier*"
+          - "@vitest/*"
+          - "vitest"
+          - "@vitejs/*"
+          - "typescript"
