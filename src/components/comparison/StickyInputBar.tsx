@@ -93,12 +93,14 @@ export function StickyInputBar({
       shadow={isScrolled ? "md" : "none"}
       px="md"
       py="xs"
-      bg={{ base: "white", dark: "dark.7" }}
+      bg="var(--mantine-primary-color-light)"
       style={{
         position: "sticky",
         top: 0,
         zIndex: 100,
-        borderBottom: isScrolled ? "1px solid lightgray" : "none",
+        borderBottom: isScrolled
+          ? "1px solid var(--mantine-color-default-border)"
+          : "none",
         transition: "all 0.2s",
       }}
     >

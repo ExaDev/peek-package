@@ -41,8 +41,10 @@ export function PackageColumn({
         inheritPadding
         py="sm"
         px="lg"
-        bg="var(--mantine-color-brand-0)"
-        style={{ borderBottom: "1px solid var(--mantine-color-gray-3)" }}
+        bg="var(--mantine-primary-color-light)"
+        style={{
+          borderBottom: "1px solid var(--mantine-color-default-border)",
+        }}
       >
         <Group justify="space-between" wrap="nowrap">
           <Text fw={700} size="lg">
