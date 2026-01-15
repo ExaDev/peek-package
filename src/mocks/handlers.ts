@@ -36,6 +36,7 @@ function createPackageDetails(
   } = opts;
 
   return {
+    analyzedAt: "2024-01-01T00:00:00.000Z",
     collected: {
       metadata: {
         name,
@@ -50,18 +51,61 @@ function createPackageDetails(
           npm: `https://www.npmjs.com/package/${name}`,
           homepage: `https://${name}.io`,
           repository: `https://github.com/example/${name}`,
+          bugs: `https://github.com/example/${name}/issues`,
         },
+        author: {
+          name: "Mock Author",
+          email: "mock@example.com",
+        },
+        maintainers: [
+          { name: "maintainer1", email: "m1@example.com" },
+          { name: "maintainer2", email: "m2@example.com" },
+        ],
       },
       npm: {
-        downloads: [{ from: "2024-01-01", to: "2024-01-07", count: downloads }],
+        // Index 0 = daily, Index 1 = weekly (what we use)
+        downloads: [
+          {
+            from: "2024-01-06",
+            to: "2024-01-07",
+            count: Math.floor(downloads / 7),
+          },
+          { from: "2024-01-01", to: "2024-01-07", count: downloads },
+        ],
+        dependentsCount: Math.floor(downloads / 10000),
+        starsCount: 0,
       },
       github: {
         starsCount: stars,
         forksCount: forks,
+        subscribersCount: Math.floor(stars / 10),
         issues: {
           count: issues + 50,
           openCount: issues,
+          distribution: {},
+          isDisabled: false,
         },
+        commits: [{ from: "2024-01-01", to: "2024-01-07", count: 10 }],
+      },
+    },
+    evaluation: {
+      quality: {
+        carefulness: quality * 0.9,
+        tests: quality * 0.8,
+        health: quality * 0.95,
+        branding: quality * 0.7,
+      },
+      popularity: {
+        communityInterest: popularity * 0.9,
+        downloadsCount: popularity * 0.95,
+        downloadsAcceleration: popularity * 0.5,
+        dependentsCount: popularity * 0.8,
+      },
+      maintenance: {
+        releasesFrequency: maintenance * 0.85,
+        commitsFrequency: maintenance * 0.9,
+        openIssues: maintenance * 0.8,
+        issuesDistribution: maintenance * 0.75,
       },
     },
     score: {
@@ -369,7 +413,14 @@ export const handlers = [
     const owner = String(params.owner);
     const repo = String(params.repo);
     return HttpResponse.json({
+      id: 12345,
+      name: repo,
+      full_name: `${owner}/${repo}`,
+      description: `Mock description for ${repo}`,
+      homepage: `https://${repo}.io`,
+      language: "JavaScript",
       stargazers_count: 50000,
+      watchers_count: 50000,
       forks_count: 5000,
       open_issues_count: 100,
       subscribers_count: 1000,
@@ -377,8 +428,7 @@ export const handlers = [
       updated_at: "2024-01-01T00:00:00Z",
       pushed_at: "2024-01-01T00:00:00Z",
       default_branch: "main",
-      homepage: `https://${repo}.io`,
-      full_name: `${owner}/${repo}`,
+      size: 15000,
     });
   }),
 
