@@ -6,7 +6,6 @@ import {
   Box,
   Group,
   Skeleton,
-  Stack,
   Text,
   Tooltip,
   UnstyledButton,
@@ -24,6 +23,7 @@ interface GitHubSectionProps {
   isLoading: boolean;
   isRefetchingGithub?: boolean;
   onRefreshGithub?: () => void;
+  rowCount: number;
 }
 
 function formatNumber(value: number | undefined): string {
@@ -67,16 +67,24 @@ function formatRelativeDate(dateStr: string | undefined): string {
 function MetricRow({
   label,
   value,
+  tooltip,
 }: {
   label: string;
   value: string | number;
+  tooltip?: string;
 }) {
   return (
-    <Group justify="space-between">
+    <Group justify="space-between" px="lg" py="xs">
       <Text size="xs" c="dimmed">
         {label}
       </Text>
-      <Text size="sm">{value}</Text>
+      {tooltip ? (
+        <Tooltip label={tooltip}>
+          <Text size="sm">{value}</Text>
+        </Tooltip>
+      ) : (
+        <Text size="sm">{value}</Text>
+      )}
     </Group>
   );
 }
@@ -86,6 +94,7 @@ export function GitHubSection({
   isLoading,
   isRefetchingGithub = false,
   onRefreshGithub,
+  rowCount,
 }: GitHubSectionProps) {
   const [contributorsExpanded, setContributorsExpanded] = useState(false);
   const [hasContributorOverflow, setHasContributorOverflow] = useState(false);
@@ -109,33 +118,39 @@ export function GitHubSection({
     };
   }, [contributorsCount]);
 
+  const px = "lg";
+  const py = "xs";
+
   if (isLoading) {
     return (
       <Box
-        py="md"
-        px="lg"
-        style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+        style={{
+          display: "grid",
+          gridTemplateRows: "subgrid",
+          gridRow: `span ${String(rowCount)}`,
+          borderTop: "1px solid var(--mantine-color-default-border)",
+        }}
       >
-        <Skeleton height={20} width="40%" mb="sm" />
-        <Stack gap="xs">
-          <Skeleton height={16} width="100%" />
-          <Skeleton height={16} width="80%" />
-        </Stack>
+        {Array.from({ length: rowCount }).map((_, i) => (
+          <Box key={i} px={px} py={py}>
+            <Skeleton height={16} width={i === 0 ? "40%" : "100%"} />
+          </Box>
+        ))}
       </Box>
     );
   }
 
-  if (!packageStats) {
-    return null;
-  }
-
   return (
     <Box
-      py="md"
-      px="lg"
-      style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+      style={{
+        display: "grid",
+        gridTemplateRows: "subgrid",
+        gridRow: `span ${String(rowCount)}`,
+        borderTop: "1px solid var(--mantine-color-default-border)",
+      }}
     >
-      <Group justify="space-between" mb="xs">
+      {/* Row 1: Section title */}
+      <Group justify="space-between" px={px} py={py}>
         <Group gap="xs">
           <IconBrandGithub size={18} />
           <Text size="sm" fw={600}>
@@ -156,127 +171,118 @@ export function GitHubSection({
           </Tooltip>
         )}
       </Group>
-      <Stack gap="xs">
-        <MetricRow label="Stars" value={formatNumber(packageStats.stars)} />
-        <MetricRow label="Forks" value={formatNumber(packageStats.forks)} />
-        <MetricRow
-          label="Open Issues"
-          value={formatNumber(packageStats.openIssues)}
-        />
-        {packageStats.github && (
-          <MetricRow
-            label="Watchers"
-            value={formatNumber(packageStats.github.subscribers)}
-          />
-        )}
-        {packageStats.github?.pushedAt && (
-          <Group justify="space-between">
-            <Text size="xs" c="dimmed">
-              Last Push
-            </Text>
-            <Tooltip label={formatDate(packageStats.github.pushedAt)}>
-              <Text size="sm">
-                {formatRelativeDate(packageStats.github.pushedAt)}
-              </Text>
-            </Tooltip>
-          </Group>
-        )}
-        {packageStats.github?.createdAt && (
-          <MetricRow
-            label="Created"
-            value={formatDate(packageStats.github.createdAt)}
-          />
-        )}
-        {packageStats.github?.updatedAt && (
-          <Group justify="space-between">
-            <Text size="xs" c="dimmed">
-              Last Updated
-            </Text>
-            <Tooltip label={formatDate(packageStats.github.updatedAt)}>
-              <Text size="sm">
-                {formatRelativeDate(packageStats.github.updatedAt)}
-              </Text>
-            </Tooltip>
-          </Group>
-        )}
-        {packageStats.github?.size !== undefined &&
-          packageStats.github.size > 0 && (
-            <MetricRow
-              label="Repo Size"
-              value={formatSize(packageStats.github.size)}
-            />
-          )}
-        {packageStats.github?.defaultBranch && (
-          <MetricRow
-            label="Default Branch"
-            value={packageStats.github.defaultBranch}
-          />
-        )}
 
-        {/* Contributors */}
-        {packageStats.contributors && packageStats.contributors.length > 0 && (
-          <Box>
-            <Group justify="space-between" mb={4}>
-              <Text size="xs" c="dimmed">
-                Top Contributors ({String(packageStats.contributors.length)})
-              </Text>
-              {(hasContributorOverflow || contributorsExpanded) && (
-                <UnstyledButton
-                  onClick={() => {
-                    setContributorsExpanded(!contributorsExpanded);
-                  }}
-                >
-                  <Group gap={2}>
-                    <Text size="xs" c="blue">
-                      {contributorsExpanded ? "Show less" : "Show all"}
-                    </Text>
-                    {contributorsExpanded ? (
-                      <IconChevronUp
-                        size={14}
-                        color="var(--mantine-color-blue-6)"
-                      />
-                    ) : (
-                      <IconChevronDown
-                        size={14}
-                        color="var(--mantine-color-blue-6)"
-                      />
-                    )}
-                  </Group>
-                </UnstyledButton>
-              )}
-            </Group>
-            <Box
-              ref={contributorsRef}
-              style={{
-                overflow: "hidden",
-                maxHeight: contributorsExpanded ? "500px" : "32px",
-                transition: "max-height 200ms ease-in-out",
+      {/* Row 2: Stars */}
+      <MetricRow label="Stars" value={formatNumber(packageStats?.stars)} />
+
+      {/* Row 3: Forks */}
+      <MetricRow label="Forks" value={formatNumber(packageStats?.forks)} />
+
+      {/* Row 4: Open Issues */}
+      <MetricRow
+        label="Open Issues"
+        value={formatNumber(packageStats?.openIssues)}
+      />
+
+      {/* Row 5: Watchers */}
+      <MetricRow
+        label="Watchers"
+        value={formatNumber(packageStats?.github?.subscribers)}
+      />
+
+      {/* Row 6: Last Push */}
+      <MetricRow
+        label="Last Push"
+        value={formatRelativeDate(packageStats?.github?.pushedAt)}
+        tooltip={formatDate(packageStats?.github?.pushedAt)}
+      />
+
+      {/* Row 7: Created */}
+      <MetricRow
+        label="Created"
+        value={formatDate(packageStats?.github?.createdAt)}
+      />
+
+      {/* Row 8: Last Updated */}
+      <MetricRow
+        label="Last Updated"
+        value={formatRelativeDate(packageStats?.github?.updatedAt)}
+        tooltip={formatDate(packageStats?.github?.updatedAt)}
+      />
+
+      {/* Row 9: Repo Size */}
+      <MetricRow
+        label="Repo Size"
+        value={formatSize(packageStats?.github?.size)}
+      />
+
+      {/* Row 10: Default Branch */}
+      <MetricRow
+        label="Default Branch"
+        value={packageStats?.github?.defaultBranch ?? "N/A"}
+      />
+
+      {/* Row 11: Contributors */}
+      <Box px={px} py={py}>
+        <Group justify="space-between" mb={4}>
+          <Text size="xs" c="dimmed">
+            Top Contributors ({String(packageStats?.contributors?.length ?? 0)})
+          </Text>
+          {(hasContributorOverflow || contributorsExpanded) && (
+            <UnstyledButton
+              onClick={() => {
+                setContributorsExpanded(!contributorsExpanded);
               }}
             >
-              <Group gap="xs" wrap="wrap">
-                {packageStats.contributors.map((c) => (
-                  <Tooltip
-                    key={c.username}
-                    label={`${c.username} (${String(c.commitsCount)} commits)`}
-                  >
-                    <Anchor
-                      href={`https://github.com/${c.username}`}
-                      target="_blank"
-                    >
-                      <Avatar
-                        src={`https://github.com/${c.username}.png?size=32`}
-                        size="sm"
-                        radius="xl"
-                        alt={c.username}
-                      />
-                    </Anchor>
-                  </Tooltip>
-                ))}
+              <Group gap={2}>
+                <Text size="xs" c="blue">
+                  {contributorsExpanded ? "Show less" : "Show all"}
+                </Text>
+                {contributorsExpanded ? (
+                  <IconChevronUp
+                    size={14}
+                    color="var(--mantine-color-blue-6)"
+                  />
+                ) : (
+                  <IconChevronDown
+                    size={14}
+                    color="var(--mantine-color-blue-6)"
+                  />
+                )}
               </Group>
-            </Box>
-          </Box>
-        )}
-      </Stack>
+            </UnstyledButton>
+          )}
+        </Group>
+        <Box
+          ref={contributorsRef}
+          style={{
+            overflow: "hidden",
+            maxHeight: contributorsExpanded ? "500px" : "32px",
+            transition: "max-height 200ms ease-in-out",
+          }}
+        >
+          <Group gap="xs" wrap="wrap">
+            {packageStats?.contributors?.map((c) => (
+              <Tooltip
+                key={c.username}
+                label={`${c.username} (${String(c.commitsCount)} commits)`}
+              >
+                <Anchor
+                  href={`https://github.com/${c.username}`}
+                  target="_blank"
+                >
+                  <Avatar
+                    src={`https://github.com/${c.username}.png?size=32`}
+                    size="sm"
+                    radius="xl"
+                    alt={c.username}
+                  />
+                </Anchor>
+              </Tooltip>
+            ))}
+          </Group>
+        </Box>
+      </Box>
     </Box>
   );
 }

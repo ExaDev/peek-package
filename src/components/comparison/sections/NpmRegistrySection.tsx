@@ -6,7 +6,6 @@ import {
   Box,
   Group,
   Skeleton,
-  Stack,
   Text,
   Tooltip,
   UnstyledButton,
@@ -25,6 +24,7 @@ interface NpmRegistrySectionProps {
   isLoading: boolean;
   isRefetchingNpm?: boolean;
   onRefreshNpm?: () => void;
+  rowCount: number;
 }
 
 function formatNumber(value: number | undefined): string {
@@ -42,7 +42,7 @@ function MetricRow({
   value: string | number;
 }) {
   return (
-    <Group justify="space-between">
+    <Group justify="space-between" px="lg" py="xs">
       <Text size="xs" c="dimmed">
         {label}
       </Text>
@@ -56,6 +56,7 @@ export function NpmRegistrySection({
   isLoading,
   isRefetchingNpm = false,
   onRefreshNpm,
+  rowCount,
 }: NpmRegistrySectionProps) {
   const [maintainersExpanded, setMaintainersExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -79,35 +80,41 @@ export function NpmRegistrySection({
     };
   }, [maintainersCount]);
 
+  const px = "lg";
+  const py = "xs";
+
   if (isLoading) {
     return (
       <Box
-        py="md"
-        px="lg"
-        style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+        style={{
+          display: "grid",
+          gridTemplateRows: "subgrid",
+          gridRow: `span ${String(rowCount)}`,
+          borderTop: "1px solid var(--mantine-color-default-border)",
+        }}
       >
-        <Skeleton height={20} width="40%" mb="sm" />
-        <Stack gap="xs">
-          <Skeleton height={16} width="100%" />
-          <Skeleton height={16} width="80%" />
-        </Stack>
+        {Array.from({ length: rowCount }).map((_, i) => (
+          <Box key={i} px={px} py={py}>
+            <Skeleton height={16} width={i === 0 ? "40%" : "100%"} />
+          </Box>
+        ))}
       </Box>
     );
   }
 
-  if (!packageStats) {
-    return null;
-  }
-
-  const hasKeywords = (packageStats.npm?.keywords.length ?? 0) > 0;
+  const hasKeywords = (packageStats?.npm?.keywords.length ?? 0) > 0;
 
   return (
     <Box
-      py="md"
-      px="lg"
-      style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+      style={{
+        display: "grid",
+        gridTemplateRows: "subgrid",
+        gridRow: `span ${String(rowCount)}`,
+        borderTop: "1px solid var(--mantine-color-default-border)",
+      }}
     >
-      <Group justify="space-between" mb="xs">
+      {/* Row 1: Section title */}
+      <Group justify="space-between" px={px} py={py}>
         <Group gap="xs">
           <IconBrandNpm size={18} color="var(--mantine-color-red-6)" />
           <Text size="sm" fw={600}>
@@ -129,121 +136,122 @@ export function NpmRegistrySection({
           </Tooltip>
         )}
       </Group>
-      <Stack gap="xs">
-        <MetricRow
-          label="Weekly Downloads"
-          value={formatNumber(packageStats.weeklyDownloads)}
-        />
-        <MetricRow
-          label="Dependents"
-          value={formatNumber(packageStats.dependentsCount)}
-        />
-        <MetricRow label="License" value={packageStats.npm?.license ?? "N/A"} />
-        <MetricRow
-          label="Dependencies"
-          value={String(packageStats.npm?.dependencies.length ?? 0)}
-        />
-        {(packageStats.npm?.devDependencies.length ?? 0) > 0 && (
-          <MetricRow
-            label="Dev Dependencies"
-            value={String(packageStats.npm?.devDependencies.length ?? 0)}
-          />
+
+      {/* Row 2: Weekly Downloads */}
+      <MetricRow
+        label="Weekly Downloads"
+        value={formatNumber(packageStats?.weeklyDownloads)}
+      />
+
+      {/* Row 3: Dependents */}
+      <MetricRow
+        label="Dependents"
+        value={formatNumber(packageStats?.dependentsCount)}
+      />
+
+      {/* Row 4: License */}
+      <MetricRow label="License" value={packageStats?.npm?.license ?? "N/A"} />
+
+      {/* Row 5: Dependencies */}
+      <MetricRow
+        label="Dependencies"
+        value={String(packageStats?.npm?.dependencies.length ?? 0)}
+      />
+
+      {/* Row 6: Dev Dependencies */}
+      <MetricRow
+        label="Dev Dependencies"
+        value={String(packageStats?.npm?.devDependencies.length ?? 0)}
+      />
+
+      {/* Row 7: Peer Dependencies */}
+      <MetricRow
+        label="Peer Dependencies"
+        value={String(
+          packageStats?.npm
+            ? Object.keys(packageStats.npm.peerDependencies).length
+            : 0,
         )}
-        {(packageStats.npm
-          ? Object.keys(packageStats.npm.peerDependencies).length
-          : 0) > 0 && (
-          <MetricRow
-            label="Peer Dependencies"
-            value={String(
-              packageStats.npm
-                ? Object.keys(packageStats.npm.peerDependencies).length
-                : 0,
+      />
+
+      {/* Row 8: Keywords */}
+      <Box px={px} py={py}>
+        {hasKeywords ? (
+          <Group gap={4}>
+            {packageStats?.npm?.keywords.slice(0, 5).map((kw) => (
+              <Badge key={kw} size="xs" variant="outline">
+                {kw}
+              </Badge>
+            ))}
+            {(packageStats?.npm?.keywords.length ?? 0) > 5 && (
+              <Badge size="xs" variant="light">
+                +{String((packageStats?.npm?.keywords.length ?? 0) - 5)} more
+              </Badge>
             )}
-          />
+          </Group>
+        ) : (
+          <Text size="xs" c="dimmed">
+            No keywords
+          </Text>
         )}
+      </Box>
 
-        {/* Keywords */}
-        {hasKeywords && (
-          <Box>
-            <Text size="xs" c="dimmed" mb={4}>
-              Keywords
-            </Text>
-            <Group gap={4}>
-              {packageStats.npm?.keywords.slice(0, 5).map((kw) => (
-                <Badge key={kw} size="xs" variant="outline">
-                  {kw}
-                </Badge>
-              ))}
-              {(packageStats.npm?.keywords.length ?? 0) > 5 && (
-                <Badge size="xs" variant="light">
-                  +{String((packageStats.npm?.keywords.length ?? 0) - 5)} more
-                </Badge>
-              )}
-            </Group>
-          </Box>
-        )}
+      {/* Row 9: Author */}
+      <MetricRow label="Author" value={packageStats?.author?.name ?? "N/A"} />
 
-        {/* Author */}
-        {packageStats.author && (
-          <MetricRow label="Author" value={packageStats.author.name} />
-        )}
-
-        {/* Maintainers */}
-        {packageStats.maintainers && packageStats.maintainers.length > 0 && (
-          <Box>
-            <Group justify="space-between" mb={4}>
-              <Text size="xs" c="dimmed">
-                Maintainers ({packageStats.maintainers.length})
-              </Text>
-              {(hasOverflow || maintainersExpanded) && (
-                <UnstyledButton
-                  onClick={() => {
-                    setMaintainersExpanded(!maintainersExpanded);
-                  }}
-                >
-                  <Group gap={2}>
-                    <Text size="xs" c="blue">
-                      {maintainersExpanded ? "Show less" : "Show all"}
-                    </Text>
-                    {maintainersExpanded ? (
-                      <IconChevronUp
-                        size={14}
-                        color="var(--mantine-color-blue-6)"
-                      />
-                    ) : (
-                      <IconChevronDown
-                        size={14}
-                        color="var(--mantine-color-blue-6)"
-                      />
-                    )}
-                  </Group>
-                </UnstyledButton>
-              )}
-            </Group>
-            <Box
-              ref={maintainersRef}
-              style={{
-                overflow: "hidden",
-                maxHeight: maintainersExpanded ? "500px" : "32px",
-                transition: "max-height 200ms ease-in-out",
+      {/* Row 10: Maintainers */}
+      <Box px={px} py={py}>
+        <Group justify="space-between" mb={4}>
+          <Text size="xs" c="dimmed">
+            Maintainers ({packageStats?.maintainers?.length ?? 0})
+          </Text>
+          {(hasOverflow || maintainersExpanded) && (
+            <UnstyledButton
+              onClick={() => {
+                setMaintainersExpanded(!maintainersExpanded);
               }}
             >
-              <Group gap="xs" wrap="wrap">
-                {packageStats.maintainers.map((m) => (
-                  <Tooltip key={m.name} label={m.name}>
-                    <Avatar
-                      src={getGravatarUrl(m.email, 32)}
-                      size="sm"
-                      radius="xl"
-                      alt={m.name}
-                    />
-                  </Tooltip>
-                ))}
+              <Group gap={2}>
+                <Text size="xs" c="blue">
+                  {maintainersExpanded ? "Show less" : "Show all"}
+                </Text>
+                {maintainersExpanded ? (
+                  <IconChevronUp
+                    size={14}
+                    color="var(--mantine-color-blue-6)"
+                  />
+                ) : (
+                  <IconChevronDown
+                    size={14}
+                    color="var(--mantine-color-blue-6)"
+                  />
+                )}
               </Group>
-            </Box>
-          </Box>
-        )}
-      </Stack>
+            </UnstyledButton>
+          )}
+        </Group>
+        <Box
+          ref={maintainersRef}
+          style={{
+            overflow: "hidden",
+            maxHeight: maintainersExpanded ? "500px" : "32px",
+            transition: "max-height 200ms ease-in-out",
+          }}
+        >
+          <Group gap="xs" wrap="wrap">
+            {packageStats?.maintainers?.map((m) => (
+              <Tooltip key={m.name} label={m.name}>
+                <Avatar
+                  src={getGravatarUrl(m.email, 32)}
+                  size="sm"
+                  radius="xl"
+                  alt={m.name}
+                />
+              </Tooltip>
+            ))}
+          </Group>
+        </Box>
+      </Box>
     </Box>
   );
 }

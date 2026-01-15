@@ -1,18 +1,11 @@
-import {
-  Badge,
-  Box,
-  Group,
-  Skeleton,
-  Stack,
-  Text,
-  Tooltip,
-} from "@mantine/core";
+import { Badge, Box, Group, Skeleton, Text, Tooltip } from "@mantine/core";
 import { IconCalculator, IconInfoCircle } from "@tabler/icons-react";
 import type { PackageStats } from "@/types/adapter";
 
 interface NpmsScoresSectionProps {
   packageStats: PackageStats | null;
   isLoading: boolean;
+  rowCount: number;
 }
 
 function getScoreColor(score: number | undefined): "green" | "yellow" | "red" {
@@ -53,7 +46,7 @@ function MetricRow({
   tooltip?: string;
 }) {
   return (
-    <Group justify="space-between">
+    <Group justify="space-between" px="lg" py="xs">
       <Group gap={4}>
         <Text size="xs" c="dimmed">
           {label}
@@ -78,169 +71,178 @@ function MetricRow({
 export function NpmsScoresSection({
   packageStats,
   isLoading,
+  rowCount,
 }: NpmsScoresSectionProps) {
+  const px = "lg";
+  const py = "xs";
+
   if (isLoading) {
     return (
-      <Box py="md" px="lg">
-        <Skeleton height={20} width="40%" mb="sm" />
-        <Stack gap="xs">
-          <Skeleton height={24} width="100%" />
-          <Skeleton height={20} width="80%" />
-        </Stack>
+      <Box
+        style={{
+          display: "grid",
+          gridTemplateRows: "subgrid",
+          gridRow: `span ${String(rowCount)}`,
+        }}
+      >
+        {Array.from({ length: rowCount }).map((_, i) => (
+          <Box key={i} px={px} py={py}>
+            <Skeleton height={16} width={i === 0 ? "40%" : "100%"} />
+          </Box>
+        ))}
       </Box>
     );
   }
 
-  if (!packageStats) {
-    return null;
-  }
-
-  const hasEvaluation = packageStats.evaluation;
+  const quality = packageStats?.evaluation?.quality;
+  const maintenance = packageStats?.evaluation?.maintenance;
 
   return (
-    <Box py="md" px="lg">
-      <Group gap="xs" mb="xs">
-        <IconCalculator size={18} color="var(--mantine-color-violet-6)" />
-        <Text size="sm" fw={600}>
-          npms.io Scores
-        </Text>
-        <Tooltip
-          label="Normalized 0-100 scores calculated by npms.io. These enable comparison across packages."
-          multiline
-          w={280}
+    <Box
+      style={{
+        display: "grid",
+        gridTemplateRows: "subgrid",
+        gridRow: `span ${String(rowCount)}`,
+      }}
+    >
+      {/* Row 1: Section title */}
+      <Box px={px} py={py}>
+        <Group gap="xs">
+          <IconCalculator size={18} color="var(--mantine-color-violet-6)" />
+          <Text size="sm" fw={600}>
+            npms.io Scores
+          </Text>
+          <Tooltip
+            label="Normalized 0-100 scores calculated by npms.io"
+            multiline
+            w={280}
+          >
+            <IconInfoCircle
+              size={14}
+              color="var(--mantine-color-dimmed)"
+              style={{ cursor: "help" }}
+            />
+          </Tooltip>
+        </Group>
+      </Box>
+
+      {/* Row 2: Overall Score */}
+      <Group justify="space-between" px={px} py={py}>
+        <Group gap={4}>
+          <Text size="xs" c="dimmed">
+            Overall Score
+          </Text>
+          <Tooltip label={CALCULATION_TOOLTIPS.finalScore} multiline w={250}>
+            <IconInfoCircle
+              size={12}
+              color="var(--mantine-color-dimmed)"
+              style={{ cursor: "help" }}
+            />
+          </Tooltip>
+        </Group>
+        <Badge
+          color={getScoreColor(packageStats?.finalScore)}
+          variant="filled"
+          size="lg"
         >
-          <IconInfoCircle
-            size={14}
-            color="var(--mantine-color-dimmed)"
-            style={{ cursor: "help" }}
-          />
-        </Tooltip>
+          {packageStats?.finalScore ?? "N/A"}/100
+        </Badge>
       </Group>
 
-      <Stack gap="md">
-        {/* Overall Score */}
-        <Group justify="space-between">
-          <Group gap={4}>
-            <Text size="xs" c="dimmed">
-              Overall Score
-            </Text>
-            <Tooltip label={CALCULATION_TOOLTIPS.finalScore} multiline w={250}>
-              <IconInfoCircle
-                size={12}
-                color="var(--mantine-color-dimmed)"
-                style={{ cursor: "help" }}
-              />
-            </Tooltip>
-          </Group>
-          <Badge
-            color={getScoreColor(packageStats.finalScore)}
-            variant="filled"
-            size="lg"
-          >
-            {packageStats.finalScore ?? "N/A"}/100
-          </Badge>
-        </Group>
-
-        {/* Main Score Badges */}
+      {/* Row 3: Main Score Badges */}
+      <Box px={px} py={py}>
         <Group gap="xs" wrap="wrap">
           <Tooltip label={CALCULATION_TOOLTIPS.quality} multiline w={250}>
             <Badge
               size="sm"
-              color={getScoreColor(packageStats.quality)}
+              color={getScoreColor(packageStats?.quality)}
               style={{ cursor: "help" }}
             >
-              Quality: {packageStats.quality ?? "N/A"}
+              Quality: {packageStats?.quality ?? "N/A"}
             </Badge>
           </Tooltip>
-
           <Tooltip label={CALCULATION_TOOLTIPS.popularity} multiline w={250}>
             <Badge
               size="sm"
-              color={getScoreColor(packageStats.popularity)}
+              color={getScoreColor(packageStats?.popularity)}
               style={{ cursor: "help" }}
             >
-              Popularity: {packageStats.popularity ?? "N/A"}
+              Popularity: {packageStats?.popularity ?? "N/A"}
             </Badge>
           </Tooltip>
-
           <Tooltip label={CALCULATION_TOOLTIPS.maintenance} multiline w={250}>
             <Badge
               size="sm"
-              color={getScoreColor(packageStats.maintenance)}
+              color={getScoreColor(packageStats?.maintenance)}
               style={{ cursor: "help" }}
             >
-              Maintenance: {packageStats.maintenance ?? "N/A"}
+              Maintenance: {packageStats?.maintenance ?? "N/A"}
             </Badge>
           </Tooltip>
         </Group>
+      </Box>
 
-        {/* Detailed Breakdowns */}
-        {hasEvaluation && (
-          <Stack gap="md">
-            {/* Quality Breakdown */}
-            {packageStats.evaluation?.quality && (
-              <Box>
-                <Text size="xs" fw={500} mb={4}>
-                  Quality Breakdown
-                </Text>
-                <Stack gap={2}>
-                  <MetricRow
-                    label="Tests"
-                    value={`${String(packageStats.evaluation.quality.tests)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.tests}
-                  />
-                  <MetricRow
-                    label="Health"
-                    value={`${String(packageStats.evaluation.quality.health)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.health}
-                  />
-                  <MetricRow
-                    label="Carefulness"
-                    value={`${String(packageStats.evaluation.quality.carefulness)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.carefulness}
-                  />
-                  <MetricRow
-                    label="Branding"
-                    value={`${String(packageStats.evaluation.quality.branding)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.branding}
-                  />
-                </Stack>
-              </Box>
-            )}
+      {/* Row 4: Quality Breakdown title */}
+      <Box px={px} py={py}>
+        <Text size="xs" fw={500}>
+          Quality Breakdown
+        </Text>
+      </Box>
 
-            {/* Maintenance Breakdown */}
-            {packageStats.evaluation?.maintenance && (
-              <Box>
-                <Text size="xs" fw={500} mb={4}>
-                  Maintenance Breakdown
-                </Text>
-                <Stack gap={2}>
-                  <MetricRow
-                    label="Release Frequency"
-                    value={`${String(packageStats.evaluation.maintenance.releasesFrequency)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.releasesFrequency}
-                  />
-                  <MetricRow
-                    label="Commit Frequency"
-                    value={`${String(packageStats.evaluation.maintenance.commitsFrequency)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.commitsFrequency}
-                  />
-                  <MetricRow
-                    label="Open Issues"
-                    value={`${String(packageStats.evaluation.maintenance.openIssues)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.openIssues}
-                  />
-                  <MetricRow
-                    label="Issues Distribution"
-                    value={`${String(packageStats.evaluation.maintenance.issuesDistribution)}%`}
-                    tooltip={CALCULATION_TOOLTIPS.issuesDistribution}
-                  />
-                </Stack>
-              </Box>
-            )}
-          </Stack>
-        )}
-      </Stack>
+      {/* Rows 5-8: Quality metrics */}
+      <MetricRow
+        label="Tests"
+        value={quality ? `${String(quality.tests)}%` : "N/A"}
+        tooltip={CALCULATION_TOOLTIPS.tests}
+      />
+      <MetricRow
+        label="Health"
+        value={quality ? `${String(quality.health)}%` : "N/A"}
+        tooltip={CALCULATION_TOOLTIPS.health}
+      />
+      <MetricRow
+        label="Carefulness"
+        value={quality ? `${String(quality.carefulness)}%` : "N/A"}
+        tooltip={CALCULATION_TOOLTIPS.carefulness}
+      />
+      <MetricRow
+        label="Branding"
+        value={quality ? `${String(quality.branding)}%` : "N/A"}
+        tooltip={CALCULATION_TOOLTIPS.branding}
+      />
+
+      {/* Row 9: Maintenance Breakdown title */}
+      <Box px={px} py={py}>
+        <Text size="xs" fw={500}>
+          Maintenance Breakdown
+        </Text>
+      </Box>
+
+      {/* Rows 10-13: Maintenance metrics */}
+      <MetricRow
+        label="Release Frequency"
+        value={
+          maintenance ? `${String(maintenance.releasesFrequency)}%` : "N/A"
+        }
+        tooltip={CALCULATION_TOOLTIPS.releasesFrequency}
+      />
+      <MetricRow
+        label="Commit Frequency"
+        value={maintenance ? `${String(maintenance.commitsFrequency)}%` : "N/A"}
+        tooltip={CALCULATION_TOOLTIPS.commitsFrequency}
+      />
+      <MetricRow
+        label="Open Issues"
+        value={maintenance ? `${String(maintenance.openIssues)}%` : "N/A"}
+        tooltip={CALCULATION_TOOLTIPS.openIssues}
+      />
+      <MetricRow
+        label="Issues Distribution"
+        value={
+          maintenance ? `${String(maintenance.issuesDistribution)}%` : "N/A"
+        }
+        tooltip={CALCULATION_TOOLTIPS.issuesDistribution}
+      />
     </Box>
   );
 }

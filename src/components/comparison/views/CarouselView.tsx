@@ -14,8 +14,113 @@ import type { ViewProps } from "./types";
 const MOBILE_BREAKPOINT = 1024;
 
 /**
- * Carousel view - horizontal layout with aligned sections using CSS Grid subgrid
- * Each section row aligns across all package columns
+ * Grid row definitions for aligned layout.
+ * Each section defines its rows, and sections use subgrid to inherit sizing.
+ */
+const GRID_ROWS = {
+  // Header section rows
+  header: {
+    title: 1, // Package name + remove button
+    description: 1, // Description text
+    badges: 1, // Version + language badges
+    links: 1, // External links
+  },
+  // Scores section rows
+  scores: {
+    title: 1, // Section header
+    overall: 1, // Overall score badge
+    mainBadges: 1, // Quality/Popularity/Maintenance
+    qualityTitle: 1, // "Quality Breakdown"
+    tests: 1,
+    health: 1,
+    carefulness: 1,
+    branding: 1,
+    maintTitle: 1, // "Maintenance Breakdown"
+    releasesFreq: 1,
+    commitsFreq: 1,
+    openIssues: 1,
+    issuesDist: 1,
+  },
+  // Comparison section
+  comparison: {
+    badges: 1, // Winner badges
+  },
+  // npm Registry section rows
+  npm: {
+    title: 1,
+    downloads: 1,
+    dependents: 1,
+    license: 1,
+    dependencies: 1,
+    devDeps: 1,
+    peerDeps: 1,
+    keywords: 1,
+    author: 1,
+    maintainers: 1,
+  },
+  // GitHub section rows
+  github: {
+    title: 1,
+    stars: 1,
+    forks: 1,
+    issues: 1,
+    watchers: 1,
+    lastPush: 1,
+    created: 1,
+    updated: 1,
+    size: 1,
+    branch: 1,
+    contributors: 1,
+  },
+  // README section
+  readme: {
+    content: 1,
+  },
+};
+
+// Calculate row counts for each section
+const SECTION_ROW_COUNTS = {
+  header: Object.keys(GRID_ROWS.header).length,
+  scores: Object.keys(GRID_ROWS.scores).length,
+  comparison: Object.keys(GRID_ROWS.comparison).length,
+  npm: Object.keys(GRID_ROWS.npm).length,
+  github: Object.keys(GRID_ROWS.github).length,
+  readme: Object.keys(GRID_ROWS.readme).length,
+};
+
+const TOTAL_ROWS = Object.values(SECTION_ROW_COUNTS).reduce((a, b) => a + b, 0);
+
+// Calculate starting row for each section
+const SECTION_START_ROWS = {
+  header: 1,
+  scores: 1 + SECTION_ROW_COUNTS.header,
+  comparison: 1 + SECTION_ROW_COUNTS.header + SECTION_ROW_COUNTS.scores,
+  npm:
+    1 +
+    SECTION_ROW_COUNTS.header +
+    SECTION_ROW_COUNTS.scores +
+    SECTION_ROW_COUNTS.comparison,
+  github:
+    1 +
+    SECTION_ROW_COUNTS.header +
+    SECTION_ROW_COUNTS.scores +
+    SECTION_ROW_COUNTS.comparison +
+    SECTION_ROW_COUNTS.npm,
+  readme:
+    1 +
+    SECTION_ROW_COUNTS.header +
+    SECTION_ROW_COUNTS.scores +
+    SECTION_ROW_COUNTS.comparison +
+    SECTION_ROW_COUNTS.npm +
+    SECTION_ROW_COUNTS.github,
+};
+
+// Export row counts for use by section components
+export { SECTION_ROW_COUNTS };
+
+/**
+ * Carousel view - horizontal layout with aligned fields using CSS Grid subgrid
+ * Every field row aligns across all package columns
  */
 export function CarouselView({
   packages,
@@ -32,9 +137,6 @@ export function CarouselView({
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
   const columnCount = packages.length;
 
-  // Calculate column sizing based on count
-  // 1-2 packages: flexible, fill available space
-  // 3+ packages: fixed width with horizontal scroll
   const useFlexibleLayout = columnCount <= 2;
   const columnMinWidth = isMobile ? 320 : useFlexibleLayout ? 400 : 450;
 
@@ -47,13 +149,11 @@ export function CarouselView({
       <Box
         style={{
           display: "grid",
-          // One column per package
           gridTemplateColumns: useFlexibleLayout
             ? `repeat(${String(columnCount)}, minmax(${String(columnMinWidth)}px, 1fr))`
             : `repeat(${String(columnCount)}, ${String(columnMinWidth)}px)`,
-          // 6 rows: header, scores, comparison, npm, github, readme
-          gridTemplateRows: "auto auto auto auto auto auto",
-          gap: "var(--mantine-spacing-lg)",
+          gridTemplateRows: `repeat(${String(TOTAL_ROWS)}, auto)`,
+          columnGap: "var(--mantine-spacing-lg)",
           padding: "var(--mantine-spacing-md)",
           minHeight: "100%",
           width: useFlexibleLayout ? "100%" : undefined,
@@ -75,6 +175,8 @@ export function CarouselView({
             dependentsCount: packageWinners.dependentsCount,
           };
 
+          const col = colIndex + 1;
+
           return (
             <Card
               key={pkg.id}
@@ -82,59 +184,111 @@ export function CarouselView({
               padding={0}
               withBorder
               style={{
-                // Span all 6 rows
-                gridColumn: colIndex + 1,
-                gridRow: "1 / -1",
-                // Use subgrid to align with parent grid rows
+                gridColumn: col,
+                gridRow: `1 / ${String(TOTAL_ROWS + 1)}`,
                 display: "grid",
                 gridTemplateRows: "subgrid",
               }}
             >
-              {/* Row 1: Header */}
-              <HeaderSection
-                packageName={pkg.packageName}
-                packageStats={packageStats}
-                isLoading={isLoading}
-                showRemove={canRemove}
-                onRemove={() => {
-                  onRemove(pkg.id);
+              {/* Header Section */}
+              <Box
+                style={{
+                  gridRow: `${String(SECTION_START_ROWS.header)} / span ${String(SECTION_ROW_COUNTS.header)}`,
+                  display: "grid",
+                  gridTemplateRows: "subgrid",
                 }}
-              />
-
-              {/* Row 2: npms.io Scores */}
-              <NpmsScoresSection
-                packageStats={packageStats}
-                isLoading={isLoading}
-              />
-
-              {/* Row 3: Comparison Results */}
-              <Box>
-                <ComparisonResultsSection winnerMetrics={pkgWinnerMetrics} />
+              >
+                <HeaderSection
+                  packageName={pkg.packageName}
+                  packageStats={packageStats}
+                  isLoading={isLoading}
+                  showRemove={canRemove}
+                  onRemove={() => {
+                    onRemove(pkg.id);
+                  }}
+                  rowCount={SECTION_ROW_COUNTS.header}
+                />
               </Box>
 
-              {/* Row 4: npm Registry */}
-              <NpmRegistrySection
-                packageStats={packageStats}
-                isLoading={isLoading}
-                isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
-                onRefreshNpm={() => {
-                  onRefreshNpm(pkg.packageName);
+              {/* Scores Section */}
+              <Box
+                style={{
+                  gridRow: `${String(SECTION_START_ROWS.scores)} / span ${String(SECTION_ROW_COUNTS.scores)}`,
+                  display: "grid",
+                  gridTemplateRows: "subgrid",
                 }}
-              />
+              >
+                <NpmsScoresSection
+                  packageStats={packageStats}
+                  isLoading={isLoading}
+                  rowCount={SECTION_ROW_COUNTS.scores}
+                />
+              </Box>
 
-              {/* Row 5: GitHub */}
-              <GitHubSection
-                packageStats={packageStats}
-                isLoading={isLoading}
-                isRefetchingGithub={refetchingGithubPackages[pkg.packageName]}
-                onRefreshGithub={() => {
-                  onRefreshGithub(pkg.packageName);
+              {/* Comparison Section */}
+              <Box
+                style={{
+                  gridRow: `${String(SECTION_START_ROWS.comparison)} / span ${String(SECTION_ROW_COUNTS.comparison)}`,
+                  display: "grid",
+                  gridTemplateRows: "subgrid",
                 }}
-              />
+              >
+                <ComparisonResultsSection
+                  winnerMetrics={pkgWinnerMetrics}
+                  rowCount={SECTION_ROW_COUNTS.comparison}
+                />
+              </Box>
 
-              {/* Row 6: README */}
-              <Box style={{ overflow: "auto" }}>
-                <ReadmeSection packageStats={packageStats} />
+              {/* npm Registry Section */}
+              <Box
+                style={{
+                  gridRow: `${String(SECTION_START_ROWS.npm)} / span ${String(SECTION_ROW_COUNTS.npm)}`,
+                  display: "grid",
+                  gridTemplateRows: "subgrid",
+                }}
+              >
+                <NpmRegistrySection
+                  packageStats={packageStats}
+                  isLoading={isLoading}
+                  isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
+                  onRefreshNpm={() => {
+                    onRefreshNpm(pkg.packageName);
+                  }}
+                  rowCount={SECTION_ROW_COUNTS.npm}
+                />
+              </Box>
+
+              {/* GitHub Section */}
+              <Box
+                style={{
+                  gridRow: `${String(SECTION_START_ROWS.github)} / span ${String(SECTION_ROW_COUNTS.github)}`,
+                  display: "grid",
+                  gridTemplateRows: "subgrid",
+                }}
+              >
+                <GitHubSection
+                  packageStats={packageStats}
+                  isLoading={isLoading}
+                  isRefetchingGithub={refetchingGithubPackages[pkg.packageName]}
+                  onRefreshGithub={() => {
+                    onRefreshGithub(pkg.packageName);
+                  }}
+                  rowCount={SECTION_ROW_COUNTS.github}
+                />
+              </Box>
+
+              {/* README Section */}
+              <Box
+                style={{
+                  gridRow: `${String(SECTION_START_ROWS.readme)} / span ${String(SECTION_ROW_COUNTS.readme)}`,
+                  display: "grid",
+                  gridTemplateRows: "subgrid",
+                }}
+              >
+                <ReadmeSection
+                  packageStats={packageStats}
+                  rowCount={SECTION_ROW_COUNTS.readme}
+                />
               </Box>
             </Card>
           );
