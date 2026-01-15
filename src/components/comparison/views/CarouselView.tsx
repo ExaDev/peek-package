@@ -16,8 +16,10 @@ export function CarouselView({
   winnerMetrics,
   canRemove,
   onRemove,
-  refetchingPackages,
-  onRefresh,
+  refetchingNpmPackages,
+  onRefreshNpm,
+  refetchingGithubPackages,
+  onRefreshGithub,
 }: ViewProps) {
   const isMobile = useMediaQuery(`(max-width: ${String(MOBILE_BREAKPOINT)}px)`);
 
@@ -44,15 +46,21 @@ export function CarouselView({
                     packageName={pkg.packageName}
                     packageStats={packageStats}
                     isLoading={isLoading}
-                    isRefetching={refetchingPackages[pkg.packageName]}
                     showRemove={canRemove}
                     winnerMetrics={winnerMetrics[pkg.packageName]}
                     onRemove={() => {
                       onRemove(pkg.id);
                     }}
-                    onRefresh={() => {
-                      onRefresh(pkg.packageName);
+                    onRefreshNpm={() => {
+                      onRefreshNpm(pkg.packageName);
                     }}
+                    onRefreshGithub={() => {
+                      onRefreshGithub(pkg.packageName);
+                    }}
+                    isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
+                    isRefetchingGithub={
+                      refetchingGithubPackages[pkg.packageName]
+                    }
                   />
                 </Box>
               );
@@ -103,15 +111,19 @@ export function CarouselView({
                   packageName={pkg.packageName}
                   packageStats={packageStats}
                   isLoading={isLoading}
-                  isRefetching={refetchingPackages[pkg.packageName]}
                   showRemove={canRemove}
                   winnerMetrics={winnerMetrics[pkg.packageName]}
                   onRemove={() => {
                     onRemove(pkg.id);
                   }}
-                  onRefresh={() => {
-                    onRefresh(pkg.packageName);
+                  onRefreshNpm={() => {
+                    onRefreshNpm(pkg.packageName);
                   }}
+                  onRefreshGithub={() => {
+                    onRefreshGithub(pkg.packageName);
+                  }}
+                  isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
+                  isRefetchingGithub={refetchingGithubPackages[pkg.packageName]}
                 />
               </Box>
             );

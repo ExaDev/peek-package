@@ -13,8 +13,10 @@ export function GridView({
   winnerMetrics,
   canRemove,
   onRemove,
-  refetchingPackages,
-  onRefresh,
+  refetchingNpmPackages,
+  onRefreshNpm,
+  refetchingGithubPackages,
+  onRefreshGithub,
 }: ViewProps) {
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
@@ -28,15 +30,19 @@ export function GridView({
             packageName={pkg.packageName}
             packageStats={packageStats}
             isLoading={isLoading}
-            isRefetching={refetchingPackages[pkg.packageName]}
             showRemove={canRemove}
             winnerMetrics={winnerMetrics[pkg.packageName]}
             onRemove={() => {
               onRemove(pkg.id);
             }}
-            onRefresh={() => {
-              onRefresh(pkg.packageName);
+            onRefreshNpm={() => {
+              onRefreshNpm(pkg.packageName);
             }}
+            onRefreshGithub={() => {
+              onRefreshGithub(pkg.packageName);
+            }}
+            isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
+            isRefetchingGithub={refetchingGithubPackages[pkg.packageName]}
           />
         );
       })}

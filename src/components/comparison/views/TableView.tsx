@@ -82,6 +82,11 @@ export function TableView({
   onRemove,
   refetchingPackages,
   onRefresh,
+  // New props (not used in table view - uses legacy onRefresh)
+  refetchingNpmPackages: _refetchingNpmPackages,
+  onRefreshNpm: _onRefreshNpm,
+  refetchingGithubPackages: _refetchingGithubPackages,
+  onRefreshGithub: _onRefreshGithub,
 }: ViewProps) {
   if (isLoading) {
     return (

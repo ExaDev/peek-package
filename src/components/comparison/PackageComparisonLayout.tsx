@@ -74,6 +74,10 @@ export function PackageComparisonLayout({
     isLoading,
     packages: packagesData,
     failedPackages,
+    refetchingNpmPackages,
+    refetchingGithubPackages,
+    refetchNpmData,
+    refetchGithubData,
     refetchingPackages,
     refetchPackage,
   } = usePackageComparison(packageNames);
@@ -140,6 +144,12 @@ export function PackageComparisonLayout({
     winnerMetrics,
     canRemove,
     onRemove: removePackage,
+    // Separate npm and GitHub refetch
+    refetchingNpmPackages,
+    onRefreshNpm: refetchNpmData,
+    refetchingGithubPackages,
+    onRefreshGithub: refetchGithubData,
+    // Legacy
     refetchingPackages,
     onRefresh: refetchPackage,
   };

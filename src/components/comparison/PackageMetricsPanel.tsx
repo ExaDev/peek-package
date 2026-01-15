@@ -1,15 +1,22 @@
 import {
+  ActionIcon,
   Badge,
+  Box,
   Card,
   Divider,
   Group,
   Skeleton,
   Stack,
   Text,
-  Title,
+  Tooltip,
 } from "@mantine/core";
 import type { PackageStats } from "@/types/adapter";
-import { IconTrophy } from "@tabler/icons-react";
+import {
+  IconBrandGithub,
+  IconBrandNpm,
+  IconRefresh,
+  IconTrophy,
+} from "@tabler/icons-react";
 
 interface PackageMetricsPanelProps {
   packageStats: PackageStats | null;
@@ -17,6 +24,10 @@ interface PackageMetricsPanelProps {
   winnerMetrics?: {
     [key in keyof PackageStats]?: boolean;
   };
+  isRefetchingNpm?: boolean;
+  isRefetchingGithub?: boolean;
+  onRefreshNpm?: () => void;
+  onRefreshGithub?: () => void;
 }
 
 function formatNumber(value: number | undefined): string {
@@ -37,6 +48,10 @@ export function PackageMetricsPanel({
   packageStats,
   isLoading,
   winnerMetrics = {},
+  isRefetchingNpm = false,
+  isRefetchingGithub = false,
+  onRefreshNpm,
+  onRefreshGithub,
 }: PackageMetricsPanelProps) {
   if (isLoading) {
     return (
@@ -81,9 +96,11 @@ export function PackageMetricsPanel({
   return (
     <Card shadow="sm" padding="lg" withBorder>
       <Stack gap="md">
-        {/* Package Name and Quality Score */}
+        {/* Quality Score Badge */}
         <Group justify="space-between">
-          <Title order={4}>{packageStats.name}</Title>
+          <Text size="sm" c="dimmed" lineClamp={2} style={{ flex: 1 }}>
+            {packageStats.description || "No description available"}
+          </Text>
           <Badge
             color={getScoreColor(packageStats.quality)}
             variant="light"
@@ -93,51 +110,60 @@ export function PackageMetricsPanel({
           </Badge>
         </Group>
 
-        {/* Description */}
-        <Text size="sm" c="dimmed" lineClamp={2}>
-          {packageStats.description || "No description available"}
-        </Text>
-
         <Divider />
 
-        {/* Key Metrics */}
-        <Stack gap={4}>
-          <Group justify="space-between">
-            <Text size="xs" c="dimmed">
-              Weekly Downloads
-            </Text>
-            {isDownloadsWinner && <IconTrophy size={14} color="orange" />}
+        {/* npm Data Section */}
+        <Box>
+          <Group justify="space-between" mb="xs">
+            <Group gap="xs">
+              <IconBrandNpm size={18} color="var(--mantine-color-red-6)" />
+              <Text size="sm" fw={600}>
+                npm
+              </Text>
+            </Group>
+            {onRefreshNpm && (
+              <Tooltip label="Refresh npm data">
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  size="sm"
+                  loading={isRefetchingNpm}
+                  onClick={onRefreshNpm}
+                  aria-label="Refresh npm data"
+                >
+                  <IconRefresh size={14} />
+                </ActionIcon>
+              </Tooltip>
+            )}
           </Group>
-          <Text size="md" fw={isDownloadsWinner ? 700 : 400}>
-            {formatNumber(packageStats.weeklyDownloads)}
-          </Text>
-        </Stack>
-
-        <Stack gap={4}>
-          <Group justify="space-between">
-            <Text size="xs" c="dimmed">
-              GitHub Stars
-            </Text>
-            {isStarsWinner && <IconTrophy size={14} color="orange" />}
-          </Group>
-          <Text size="md" fw={isStarsWinner ? 700 : 400}>
-            {formatNumber(packageStats.stars)}
-          </Text>
-        </Stack>
-
-        <Stack gap={4}>
-          <Group justify="space-between">
-            <Text size="xs" c="dimmed">
-              Forks
-            </Text>
-            {isForksWinner && <IconTrophy size={14} color="orange" />}
-          </Group>
-          <Text size="md" fw={isForksWinner ? 700 : 400}>
-            {formatNumber(packageStats.forks)}
-          </Text>
-        </Stack>
-
-        <Divider />
+          <Stack gap="xs">
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                Weekly Downloads
+              </Text>
+              <Group gap={4}>
+                {isDownloadsWinner && <IconTrophy size={12} color="orange" />}
+                <Text size="sm" fw={isDownloadsWinner ? 700 : 400}>
+                  {formatNumber(packageStats.weeklyDownloads)}
+                </Text>
+              </Group>
+            </Group>
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                License
+              </Text>
+              <Text size="sm">{packageStats.npm?.license ?? "N/A"}</Text>
+            </Group>
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                Dependencies
+              </Text>
+              <Text size="sm">
+                {packageStats.npm?.dependencies.length ?? 0}
+              </Text>
+            </Group>
+          </Stack>
+        </Box>
 
         {/* Score Badges */}
         <Group gap="xs" wrap="wrap">
@@ -178,6 +204,63 @@ export function PackageMetricsPanel({
             {packageStats.maintenance ?? "N/A"}
           </Badge>
         </Group>
+
+        <Divider />
+
+        {/* GitHub Data Section */}
+        <Box>
+          <Group justify="space-between" mb="xs">
+            <Group gap="xs">
+              <IconBrandGithub size={18} />
+              <Text size="sm" fw={600}>
+                GitHub
+              </Text>
+            </Group>
+            {onRefreshGithub && (
+              <Tooltip label="Refresh GitHub data">
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  loading={isRefetchingGithub}
+                  onClick={onRefreshGithub}
+                  aria-label="Refresh GitHub data"
+                >
+                  <IconRefresh size={14} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+          </Group>
+          <Stack gap="xs">
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                Stars
+              </Text>
+              <Group gap={4}>
+                {isStarsWinner && <IconTrophy size={12} color="orange" />}
+                <Text size="sm" fw={isStarsWinner ? 700 : 400}>
+                  {formatNumber(packageStats.stars)}
+                </Text>
+              </Group>
+            </Group>
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                Forks
+              </Text>
+              <Group gap={4}>
+                {isForksWinner && <IconTrophy size={12} color="orange" />}
+                <Text size="sm" fw={isForksWinner ? 700 : 400}>
+                  {formatNumber(packageStats.forks)}
+                </Text>
+              </Group>
+            </Group>
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">
+                Open Issues
+              </Text>
+              <Text size="sm">{formatNumber(packageStats.openIssues)}</Text>
+            </Group>
+          </Stack>
+        </Box>
       </Stack>
     </Card>
   );
