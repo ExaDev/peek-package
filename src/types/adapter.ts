@@ -23,6 +23,7 @@ export interface PackageStats {
   totalDownloads?: number;
   stars?: number;
   forks?: number;
+  dependentsCount?: number;
 
   // Maintenance metrics (optional)
   lastPublish?: string;
@@ -30,10 +31,52 @@ export interface PackageStats {
   commits?: number;
   contributors?: number;
 
-  // Quality scores (npms.io specific)
+  // Quality scores (npms.io specific, 0-100)
   quality?: number;
   popularity?: number;
   maintenance?: number;
+  finalScore?: number;
+
+  // Author/maintainer info
+  author?: {
+    name: string;
+    email?: string;
+    url?: string;
+  } | null;
+  maintainers?: Array<{
+    name: string;
+    email?: string;
+  }>;
+
+  // Links
+  links?: {
+    npm?: string;
+    homepage?: string | null;
+    repository?: string | null;
+    bugs?: string | null;
+  };
+
+  // Detailed evaluation scores (npms.io)
+  evaluation?: {
+    quality: {
+      carefulness: number;
+      tests: number;
+      health: number;
+      branding: number;
+    };
+    popularity: {
+      communityInterest: number;
+      downloadsCount: number;
+      downloadsAcceleration: number;
+      dependentsCount: number;
+    };
+    maintenance: {
+      releasesFrequency: number;
+      commitsFrequency: number;
+      openIssues: number;
+      issuesDistribution: number;
+    };
+  };
 
   // Ecosystem-specific extensions
   npm?: NpmSpecificStats;
@@ -54,18 +97,24 @@ export interface NpmSpecificStats {
 
 /**
  * GitHub-specific statistics
+ * Core metrics (stars, forks, openIssues, subscribers) are always available
+ * Other fields are only available from GitHub API, not npms.io fallback
  */
 export interface GithubSpecificStats {
+  // Always available (from npms.io or GitHub API)
   stars: number;
   forks: number;
   openIssues: number;
   subscribers: number;
-  createdAt: string;
-  updatedAt: string;
-  pushedAt: string;
-  defaultBranch: string;
-  readme: string | null;
-  homepageUrl: string;
+  // Only available from GitHub API
+  createdAt?: string;
+  updatedAt?: string;
+  pushedAt?: string;
+  defaultBranch?: string;
+  readme?: string | null;
+  homepageUrl?: string;
+  language?: string | null;
+  size?: number;
 }
 
 /**
