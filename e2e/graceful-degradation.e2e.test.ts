@@ -25,7 +25,10 @@ test.describe("Graceful Degradation", () => {
     await firstOption.click();
 
     // Package should still load with npms.io data even though GitHub failed
-    await expect(page.getByRole("heading", { name: "react" })).toBeVisible({
+    // Use level: 4 to target the h4 package title (not h1 headings in README)
+    await expect(
+      page.getByRole("heading", { name: "react", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
 

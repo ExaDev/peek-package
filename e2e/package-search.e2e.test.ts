@@ -48,8 +48,10 @@ test.describe("Package Search Journey", () => {
     await expect(firstOption).toBeVisible({ timeout: 5000 });
     await firstOption.click();
 
-    // Should show package data - check for the package name heading
-    await expect(page.getByRole("heading", { name: "express" })).toBeVisible({
+    // Should show package data - check for the package name heading (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "express", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });
@@ -66,8 +68,10 @@ test.describe("Package Search Journey", () => {
     // Click somewhere else to blur (closes autocomplete and triggers submission)
     await page.getByRole("heading", { name: "PeekPackage", level: 1 }).click();
 
-    // Should show package data - check for the package name heading
-    await expect(page.getByRole("heading", { name: "axios" })).toBeVisible({
+    // Should show package data - check for the package name heading (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "axios", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });

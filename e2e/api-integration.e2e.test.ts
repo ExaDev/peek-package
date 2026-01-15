@@ -27,7 +27,10 @@ test.describe("API Integration (Real API)", () => {
 
     // Should show real package data - allow extra time for real API calls
     // which may involve multiple requests (npms.io + GitHub API)
-    await expect(page.getByRole("heading", { name: "react" })).toBeVisible({
+    // Use level: 4 to target the h4 package title (not h1 headings in README)
+    await expect(
+      page.getByRole("heading", { name: "react", level: 4 }),
+    ).toBeVisible({
       timeout: 30000,
     });
   });

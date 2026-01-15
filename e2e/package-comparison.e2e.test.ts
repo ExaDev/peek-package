@@ -35,11 +35,15 @@ test.describe("Package Comparison Journey", () => {
     await fillAndSubmitPackage(page, "Package 1", "react");
     await fillAndSubmitPackage(page, "Package 2", "vue");
 
-    // Wait for both packages to load - check for package name headings
-    await expect(page.getByRole("heading", { name: "react" })).toBeVisible({
+    // Wait for both packages to load - check for package name headings (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "react", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
-    await expect(page.getByRole("heading", { name: "vue" })).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "vue", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });
@@ -47,8 +51,10 @@ test.describe("Package Comparison Journey", () => {
   test("should display package metadata after submission", async ({ page }) => {
     await fillAndSubmitPackage(page, "Package 1", "lodash");
 
-    // Should show package heading with name
-    await expect(page.getByRole("heading", { name: "lodash" })).toBeVisible({
+    // Should show package heading with name (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "lodash", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });
@@ -59,7 +65,9 @@ test.describe("Package Comparison Journey", () => {
     await fillAndSubmitPackage(page, "Package 1", "express");
 
     // Should show package data (loading state is brief, so we check for the result)
-    await expect(page.getByRole("heading", { name: "express" })).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "express", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });
@@ -78,14 +86,14 @@ test.describe("Package Comparison Journey", () => {
     await fillAndSubmitPackage(page, "Package 1", "react");
     await fillAndSubmitPackage(page, "Package 2", "preact");
 
-    // Wait for both packages to load (use exact: true to avoid react matching preact)
+    // Wait for both packages to load (h4 in metrics panel, use exact: true to avoid react matching preact)
     await expect(
-      page.getByRole("heading", { name: "react", exact: true }),
+      page.getByRole("heading", { name: "react", level: 4, exact: true }),
     ).toBeVisible({
       timeout: 15000,
     });
     await expect(
-      page.getByRole("heading", { name: "preact", exact: true }),
+      page.getByRole("heading", { name: "preact", level: 4, exact: true }),
     ).toBeVisible({
       timeout: 15000,
     });
@@ -108,14 +116,20 @@ test.describe("Package Comparison Journey", () => {
     await fillAndSubmitPackage(page, "Package 2", "fastify");
     await fillAndSubmitPackage(page, "Package 3", "koa");
 
-    // Wait for all packages to load
-    await expect(page.getByRole("heading", { name: "express" })).toBeVisible({
+    // Wait for all packages to load (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "express", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
-    await expect(page.getByRole("heading", { name: "fastify" })).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "fastify", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
-    await expect(page.getByRole("heading", { name: "koa" })).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "koa", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });
@@ -132,8 +146,10 @@ test.describe("Package Comparison Journey", () => {
     await fillAndSubmitPackage(page, "Package 1", "moment");
     await fillAndSubmitPackage(page, "Package 2", "dayjs");
 
-    // Wait for data
-    await expect(page.getByRole("heading", { name: "moment" })).toBeVisible({
+    // Wait for data (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "moment", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
 
@@ -145,8 +161,10 @@ test.describe("Package Comparison Journey", () => {
     await expect(firstOption).toBeVisible({ timeout: 5000 });
     await firstOption.click();
 
-    // Wait for new data
-    await expect(page.getByRole("heading", { name: "date-fns" })).toBeVisible({
+    // Wait for new data (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "date-fns", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
   });
@@ -170,8 +188,10 @@ test.describe("Package Comparison Journey", () => {
     await fillAndSubmitPackage(page, "Package 2", "underscore");
     await fillAndSubmitPackage(page, "Package 3", "ramda");
 
-    // Wait for data to load
-    await expect(page.getByRole("heading", { name: "lodash" })).toBeVisible({
+    // Wait for data to load (h4 in metrics panel)
+    await expect(
+      page.getByRole("heading", { name: "lodash", level: 4 }),
+    ).toBeVisible({
       timeout: 15000,
     });
 

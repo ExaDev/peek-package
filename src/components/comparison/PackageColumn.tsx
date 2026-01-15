@@ -1,4 +1,4 @@
-import { Accordion, Text } from "@mantine/core";
+import { Box, Paper, Title } from "@mantine/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
@@ -57,33 +57,32 @@ export function PackageColumn({
       />
 
       {/* Metrics Panel */}
-      <div style={{ flex: 1 }}>
-        <PackageMetricsPanel
-          packageStats={packageStats}
-          isLoading={isLoading}
-          winnerMetrics={winnerMetrics}
-        />
-      </div>
+      <PackageMetricsPanel
+        packageStats={packageStats}
+        isLoading={isLoading}
+        winnerMetrics={winnerMetrics}
+      />
 
       {/* README Section */}
       {packageStats?.github?.readme && (
-        <Accordion variant="filled" radius="md">
-          <Accordion.Item value="readme">
-            <Accordion.Control>
-              <Text fw={500}>README</Text>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <div style={{ maxHeight: "400px", overflow: "auto" }}>
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeSanitize]}
-                >
-                  {packageStats.github.readme}
-                </ReactMarkdown>
-              </div>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
+        <Paper p="md" radius="md" withBorder>
+          <Title order={5} mb="md">
+            README
+          </Title>
+          <Box
+            style={{
+              maxHeight: "500px",
+              overflow: "auto",
+            }}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSanitize]}
+            >
+              {packageStats.github.readme}
+            </ReactMarkdown>
+          </Box>
+        </Paper>
       )}
     </div>
   );
