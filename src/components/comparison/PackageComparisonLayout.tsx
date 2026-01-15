@@ -100,6 +100,7 @@ export function PackageComparisonLayout() {
       <ScrollArea.Autosize type="scroll" offsetScrollbars>
         <Flex
           gap="md"
+          justify="center"
           style={{ minWidth: "min-content", paddingBottom: "16px" }}
         >
           {columns.map((col) => {
@@ -133,19 +134,19 @@ export function PackageComparisonLayout() {
               </Box>
             );
           })}
-          <AddColumnButton
-            onClick={addColumn}
-            disabled={!canAddMore}
-            currentColumnCount={columns.length}
-          />
         </Flex>
+        <AddColumnButton
+          onClick={addColumn}
+          disabled={!canAddMore}
+          currentColumnCount={columns.length}
+        />
       </ScrollArea.Autosize>
     );
   }
 
-  // Desktop layout: Flex wrap
+  // Desktop layout: Flex wrap with centered columns
   return (
-    <Flex gap="xl" wrap="wrap">
+    <Flex gap="xl" align="flex-start" justify="center" wrap="wrap">
       {columns.map((col) => {
         const packageName = col.value.trim();
         const packageStats =

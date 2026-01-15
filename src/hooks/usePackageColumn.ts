@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const MAX_PACKAGES = 6;
-const MIN_PACKAGES = 2;
+const MIN_PACKAGES = 1;
 
 export interface PackageColumnState {
   id: string;
@@ -20,7 +20,6 @@ export interface UsePackageColumnReturn {
 
 export function usePackageColumn(): UsePackageColumnReturn {
   const [columns, setColumns] = useState<PackageColumnState[]>([
-    { id: crypto.randomUUID(), value: "", searchQuery: "" },
     { id: crypto.randomUUID(), value: "", searchQuery: "" },
   ]);
 
