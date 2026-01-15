@@ -8,7 +8,6 @@ import classes from "./ReadmeSection.module.css";
 
 interface ReadmeSectionProps {
   packageStats: PackageStats | null;
-  rowCount: number;
 }
 
 // Custom components to style markdown elements
@@ -26,17 +25,13 @@ const markdownComponents: Components = {
   ),
 };
 
-export function ReadmeSection({ packageStats, rowCount }: ReadmeSectionProps) {
+export function ReadmeSection({ packageStats }: ReadmeSectionProps) {
   return (
     <Box
       px="lg"
       py="md"
       style={{
-        display: "grid",
-        gridTemplateRows: "subgrid",
-        gridRow: `span ${String(rowCount)}`,
         borderTop: "1px solid var(--mantine-color-default-border)",
-        overflow: "hidden",
       }}
     >
       {packageStats?.github?.readme ? (
