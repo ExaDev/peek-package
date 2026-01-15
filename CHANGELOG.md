@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/ExaDev/package-compare/compare/v1.0.1...v1.1.0) (2026-01-15)
+
+### Features
+
+- **release:** add GitHub releases with semantic-release ([46c7c93](https://github.com/ExaDev/package-compare/commit/46c7c9399cd1ef9748e1797fde40643aae728bdd))
+
 ## [1.0.1](https://github.com/ExaDev/package-compare/compare/v1.0.0...v1.0.1) (2026-01-15)
 
 ### Bug Fixes
