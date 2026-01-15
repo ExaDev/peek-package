@@ -72,8 +72,10 @@ describe("PackageInput", () => {
     fireEvent.click(addButton);
 
     // Now remove it
-    const removeButtons = screen.getAllByRole("button", { name: "" }); // IconX buttons
-    fireEvent.click(removeButtons[0]);
+    const removeButton = screen.getByRole("button", {
+      name: /remove package 3/i,
+    });
+    fireEvent.click(removeButton);
 
     const inputs = screen.getAllByPlaceholderText("e.g., react");
     expect(inputs).toHaveLength(2);
