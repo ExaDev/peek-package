@@ -51,8 +51,10 @@ test.describe("Package Comparison Journey", () => {
       timeout: 15000,
     });
 
-    // Should show metrics
-    await expect(page.getByText("Weekly Downloads")).toBeVisible();
+    // Should show metrics (wait for data to load)
+    await expect(page.getByText("Weekly Downloads")).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test("should show loading or data state after adding", async ({ page }) => {

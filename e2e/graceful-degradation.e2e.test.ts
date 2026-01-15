@@ -32,7 +32,9 @@ test.describe("Graceful Degradation", () => {
     });
 
     // Should display metrics from npms.io (GitHub stats come from collected.github)
-    await expect(page.getByText("Weekly Downloads")).toBeVisible();
+    await expect(page.getByText("Weekly Downloads")).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test("should handle npms.io API failure gracefully", async ({ page }) => {
