@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Alert, Container, Group, Stack, Title } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { useState, useEffect } from "react";
+import { Alert, Button, Container, Group, Stack, Title } from "@mantine/core";
+import { IconAlertCircle, IconDownload } from "@tabler/icons-react";
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { theme } from "./theme";
 import { PackageInput } from "./components/comparison/PackageInput";
 import { ReadmeAccordion } from "./components/ui/ReadmeAccordion";
@@ -10,10 +11,17 @@ import { EmptyState } from "./components/comparison/EmptyState";
 import { StickyInputBar } from "./components/comparison/StickyInputBar";
 import { ResultsSkeleton } from "./components/comparison/ResultsSkeleton";
 import { ResultsDashboard } from "./components/results/ResultsDashboard";
+import { ShareButton } from "./components/ui/ShareButton";
+import { HistoryPanel } from "./components/ui/HistoryPanel";
 import { usePackageComparison } from "./hooks/usePackageComparison";
+import { useShareableUrl } from "./hooks/useShareableUrl";
+import { useComparisonHistory } from "./hooks/useComparisonHistory";
 import { ComparatorService } from "./services/comparator";
+import { exportToCsv } from "./utils/exportToCsv";
+import { useSearchParams } from "react-router-dom";
 
 function App() {
+  const [searchParams] = useSearchParams();
   const [packageNames, setPackageNames] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
 
@@ -24,9 +32,29 @@ function App() {
   const comparison =
     packages.length > 0 ? comparator.compareMany(packages) : null;
 
+  const { shareUrl } = useShareableUrl(packageNames);
+  const { history, addToHistory, clearHistory, formatRelativeTime } =
+    useComparisonHistory();
+
+  // Load packages from URL on mount
+  useEffect(() => {
+    const urlPackages = searchParams.get("packages")?.split(",");
+    if (urlPackages && urlPackages.length >= 2) {
+      setPackageNames(urlPackages);
+      setShowComparison(true);
+    }
+  }, [searchParams]);
+
   const handleCompare = (names: string[]) => {
     setPackageNames(names);
     setShowComparison(true);
+    addToHistory(names);
+  };
+
+  const handleExport = () => {
+    if (packages.length > 0) {
+      exportToCsv(packages);
+    }
   };
 
   const getErrorMessage = () => {
@@ -37,6 +65,7 @@ function App() {
 
   return (
     <MantineProvider theme={theme}>
+      <Notifications />
       <StickyInputBar
         packages={packageNames}
         onClear={() => {
@@ -47,7 +76,32 @@ function App() {
       <Container size="xl" py="xl">
         <Group justify="space-between" mb="xl">
           <Title>PkgCompare</Title>
-          <SettingsModal />
+          <Group gap="sm">
+            <HistoryPanel
+              history={history}
+              formatRelativeTime={formatRelativeTime}
+              onLoadComparison={(pkgs) => {
+                setPackageNames(pkgs);
+                setShowComparison(true);
+              }}
+              onClearHistory={clearHistory}
+            />
+            {showComparison && packages.length > 0 && (
+              <>
+                <ShareButton shareUrl={shareUrl} />
+                <Button
+                  variant="light"
+                  color="brand"
+                  size="sm"
+                  leftSection={<IconDownload size={16} />}
+                  onClick={handleExport}
+                >
+                  Export
+                </Button>
+              </>
+            )}
+            <SettingsModal />
+          </Group>
         </Group>
 
         <Stack gap="xl">
