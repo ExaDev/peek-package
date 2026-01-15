@@ -1,8 +1,8 @@
-import { Accordion, SimpleGrid, Stack, Title } from '@mantine/core';
-import type { NPackageComparison } from '@/types/adapter';
-import { MetricCard } from './MetricCard';
-import { PackageCards } from './PackageCards';
-import { ComparisonTable } from '../comparison/ComparisonTable';
+import { Accordion, SimpleGrid, Stack, Title } from "@mantine/core";
+import type { NPackageComparison } from "@/types/adapter";
+import { MetricCard } from "./MetricCard";
+import { PackageCards } from "./PackageCards";
+import { ResponsiveTable } from "./ResponsiveTable";
 
 interface ResultsDashboardProps {
   comparison: NPackageComparison;
@@ -20,10 +20,7 @@ export function ResultsDashboard({ comparison }: ResultsDashboardProps) {
       {/* Metrics Comparison - Cards */}
       <Stack gap="md">
         <Title order={3}>Metrics Comparison</Title>
-        <SimpleGrid
-          cols={{ base: 1, sm: 2, md: 3 }}
-          spacing="md"
-        >
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           {comparison.metricComparisons.map((metric) => (
             <MetricCard key={metric.name} metric={metric} />
           ))}
@@ -37,7 +34,7 @@ export function ResultsDashboard({ comparison }: ResultsDashboardProps) {
             <Title order={4}>View Full Comparison Table</Title>
           </Accordion.Control>
           <Accordion.Panel>
-            <ComparisonTable comparison={comparison} />
+            <ResponsiveTable comparison={comparison} />
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
