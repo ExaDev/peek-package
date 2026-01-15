@@ -1,0 +1,40 @@
+.readmeContent {
+  overflow: auto;
+}
+
+/* Ensure images scale to container width */
+.readmeContent img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Allow badge/image rows to wrap */
+.readmeContent p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Reset flex for text-only paragraphs - use block when no images */
+.readmeContent p:not(:has(img)):not(:has(a > img)) {
+  display: block;
+}
+
+/* Anchors containing images should be inline-block for better wrapping */
+.readmeContent a:has(img) {
+  display: inline-block;
+}
+
+/* Tables should scroll horizontally if too wide */
+.readmeContent table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Code blocks should scroll */
+.readmeContent pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
