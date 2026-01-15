@@ -18,13 +18,14 @@ import type { PackageStats } from "@/types/adapter";
 import {
   IconBrandGithub,
   IconBrandNpm,
+  IconCalculator,
   IconChevronDown,
   IconChevronUp,
   IconCode,
   IconExternalLink,
+  IconInfoCircle,
   IconRefresh,
   IconTrophy,
-  IconUser,
 } from "@tabler/icons-react";
 import { getGravatarUrl } from "@/utils/gravatar";
 
@@ -85,6 +86,82 @@ function getScoreColor(score: number | undefined): "green" | "yellow" | "red" {
   return "red";
 }
 
+// Calculation explanation tooltips
+const CALCULATION_TOOLTIPS = {
+  finalScore:
+    "Weighted combination of Quality (30%), Popularity (35%), and Maintenance (35%) scores",
+  quality:
+    "Based on: test coverage detection, code health indicators, linting/TypeScript usage, README quality and description",
+  popularity:
+    "Based on: community interest (stars + forks), download volume, download growth rate, packages depending on this",
+  maintenance:
+    "Based on: release frequency, commit frequency, issue response time, issue resolution distribution",
+  tests: "Detects presence of test frameworks and test files in the repository",
+  health:
+    "Checks for .npmignore, lockfiles, shrinkwrap, and other health indicators",
+  carefulness: "Checks for linting setup, TypeScript, and code quality tooling",
+  branding:
+    "Evaluates README presence, quality, and package description completeness",
+  releasesFrequency: "How frequently new versions are published to npm",
+  commitsFrequency: "How frequently commits are made to the repository",
+  openIssues: "Score based on how quickly issues receive responses",
+  issuesDistribution: "Score based on issue resolution time distribution",
+  communityInterest: "Combined stars and forks count from GitHub",
+  downloadsCount: "Total download count used in popularity calculation",
+  downloadsAcceleration: "Rate of change in downloads (growth or decline)",
+  dependentsCount: "Number of packages that depend on this package",
+};
+
+/**
+ * Metric row with optional tooltip and winner indicator
+ */
+function MetricRow({
+  label,
+  value,
+  tooltip,
+  isWinner,
+  isBadge,
+  badgeColor,
+}: {
+  label: string;
+  value: string | number;
+  tooltip?: string;
+  isWinner?: boolean;
+  isBadge?: boolean;
+  badgeColor?: "green" | "yellow" | "red";
+}) {
+  return (
+    <Group justify="space-between">
+      <Group gap={4}>
+        <Text size="xs" c="dimmed">
+          {label}
+        </Text>
+        {tooltip && (
+          <Tooltip label={tooltip} multiline w={250}>
+            <IconInfoCircle
+              size={12}
+              color="var(--mantine-color-dimmed)"
+              style={{ cursor: "help" }}
+            />
+          </Tooltip>
+        )}
+      </Group>
+      <Group gap={4}>
+        {isWinner && <IconTrophy size={12} color="orange" />}
+        {isBadge ? (
+          <Badge size="xs" variant="light" color={badgeColor}>
+            {value}
+          </Badge>
+        ) : (
+          <Text size="sm" fw={isWinner ? 700 : 400}>
+            {value}
+          </Text>
+        )}
+      </Group>
+    </Group>
+  );
+}
+
 export function PackageMetricsPanel({
   packageStats,
   isLoading,
@@ -95,23 +172,22 @@ export function PackageMetricsPanel({
   onRefreshGithub,
 }: PackageMetricsPanelProps) {
   const [maintainersExpanded, setMaintainersExpanded] = useState(false);
+  const [contributorsExpanded, setContributorsExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
+  const [hasContributorOverflow, setHasContributorOverflow] = useState(false);
   const maintainersRef = useRef<HTMLDivElement>(null);
+  const contributorsRef = useRef<HTMLDivElement>(null);
 
   // Detect if maintainers overflow the container
-  // Uses a ref to measure the collapsed height (32px) vs actual content height
   const maintainersCount = packageStats?.maintainers?.length ?? 0;
   useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM is painted before measuring
     const checkOverflow = () => {
       const el = maintainersRef.current;
       if (el) {
-        // Temporarily remove max-height to measure true content height
         const originalMaxHeight = el.style.maxHeight;
         el.style.maxHeight = "none";
         const contentHeight = el.scrollHeight;
         el.style.maxHeight = originalMaxHeight;
-        // Check if content exceeds collapsed height (32px)
         setHasOverflow(contentHeight > 33);
       }
     };
@@ -120,6 +196,25 @@ export function PackageMetricsPanel({
       cancelAnimationFrame(frameId);
     };
   }, [maintainersCount]);
+
+  // Detect if contributors overflow the container
+  const contributorsCount = packageStats?.contributors?.length ?? 0;
+  useEffect(() => {
+    const checkOverflow = () => {
+      const el = contributorsRef.current;
+      if (el) {
+        const originalMaxHeight = el.style.maxHeight;
+        el.style.maxHeight = "none";
+        const contentHeight = el.scrollHeight;
+        el.style.maxHeight = originalMaxHeight;
+        setHasContributorOverflow(contentHeight > 33);
+      }
+    };
+    const frameId = requestAnimationFrame(checkOverflow);
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [contributorsCount]);
 
   if (isLoading) {
     return (
@@ -162,8 +257,6 @@ export function PackageMetricsPanel({
   const isForksWinner = winnerMetrics.forks;
   const isDependentsWinner = winnerMetrics.dependentsCount;
 
-  const hasAuthorOrMaintainers =
-    packageStats.author || (packageStats.maintainers?.length ?? 0) > 0;
   const hasKeywords = (packageStats.npm?.keywords.length ?? 0) > 0;
   const hasLinks = packageStats.links;
   const hasEvaluation = packageStats.evaluation;
@@ -171,47 +264,78 @@ export function PackageMetricsPanel({
   return (
     <Card shadow="sm" padding="lg" withBorder>
       <Stack gap="md">
-        {/* Header with version and final score */}
-        <Group justify="space-between" align="flex-start">
-          <Stack gap={2}>
-            <Text size="sm" c="dimmed" lineClamp={2}>
-              {packageStats.description || "No description available"}
-            </Text>
-            <Group gap="xs">
-              <Badge variant="outline" size="sm">
-                v{packageStats.version}
-              </Badge>
-              {packageStats.github?.language && (
-                <Badge
-                  variant="light"
-                  size="sm"
-                  leftSection={<IconCode size={10} />}
-                >
-                  {packageStats.github.language}
-                </Badge>
-              )}
-            </Group>
-          </Stack>
-          <Tooltip label="Overall npms.io score">
-            <Badge
-              color={getScoreColor(packageStats.finalScore)}
-              variant="filled"
-              size="lg"
-            >
-              {packageStats.finalScore ?? "N/A"}/100
+        {/* Header with version and language */}
+        <Box>
+          <Text size="sm" c="dimmed" lineClamp={2} mb="xs">
+            {packageStats.description || "No description available"}
+          </Text>
+          <Group gap="xs">
+            <Badge variant="outline" size="sm">
+              v{packageStats.version}
             </Badge>
-          </Tooltip>
-        </Group>
+            {packageStats.github?.language && (
+              <Badge
+                variant="light"
+                size="sm"
+                leftSection={<IconCode size={10} />}
+              >
+                {packageStats.github.language}
+              </Badge>
+            )}
+          </Group>
+        </Box>
+
+        {/* Links Row */}
+        {hasLinks && (
+          <Group gap="xs">
+            {packageStats.links?.npm && (
+              <Anchor href={packageStats.links.npm} target="_blank" size="xs">
+                <Group gap={2}>
+                  npm <IconExternalLink size={10} />
+                </Group>
+              </Anchor>
+            )}
+            {packageStats.links?.repository && (
+              <Anchor
+                href={packageStats.links.repository}
+                target="_blank"
+                size="xs"
+              >
+                <Group gap={2}>
+                  Repository <IconExternalLink size={10} />
+                </Group>
+              </Anchor>
+            )}
+            {packageStats.links?.homepage && (
+              <Anchor
+                href={packageStats.links.homepage}
+                target="_blank"
+                size="xs"
+              >
+                <Group gap={2}>
+                  Homepage <IconExternalLink size={10} />
+                </Group>
+              </Anchor>
+            )}
+            {packageStats.links?.bugs && (
+              <Anchor href={packageStats.links.bugs} target="_blank" size="xs">
+                <Group gap={2}>
+                  Issues <IconExternalLink size={10} />
+                </Group>
+              </Anchor>
+            )}
+          </Group>
+        )}
 
         <Divider />
 
-        {/* npm Data Section */}
+        {/* ===== npm Registry Data Section ===== */}
         <Box>
           <Group justify="space-between" mb="xs">
             <Group gap="xs">
               <IconBrandNpm size={18} color="var(--mantine-color-red-6)" />
               <Text size="sm" fw={600}>
-                npm
+                npm Registry
               </Text>
             </Group>
             {onRefreshNpm && (
@@ -230,66 +354,43 @@ export function PackageMetricsPanel({
             )}
           </Group>
           <Stack gap="xs">
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                Weekly Downloads
-              </Text>
-              <Group gap={4}>
-                {isDownloadsWinner && <IconTrophy size={12} color="orange" />}
-                <Text size="sm" fw={isDownloadsWinner ? 700 : 400}>
-                  {formatNumber(packageStats.weeklyDownloads)}
-                </Text>
-              </Group>
-            </Group>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                Dependents
-              </Text>
-              <Group gap={4}>
-                {isDependentsWinner && <IconTrophy size={12} color="orange" />}
-                <Text size="sm" fw={isDependentsWinner ? 700 : 400}>
-                  {formatNumber(packageStats.dependentsCount)}
-                </Text>
-              </Group>
-            </Group>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                License
-              </Text>
-              <Text size="sm">{packageStats.npm?.license ?? "N/A"}</Text>
-            </Group>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                Dependencies
-              </Text>
-              <Text size="sm">
-                {packageStats.npm?.dependencies.length ?? 0}
-              </Text>
-            </Group>
+            <MetricRow
+              label="Weekly Downloads"
+              value={formatNumber(packageStats.weeklyDownloads)}
+            />
+            <MetricRow
+              label="Dependents"
+              value={formatNumber(packageStats.dependentsCount)}
+              tooltip="Packages that depend on this package"
+            />
+            <MetricRow
+              label="License"
+              value={packageStats.npm?.license ?? "N/A"}
+            />
+            <MetricRow
+              label="Dependencies"
+              value={String(packageStats.npm?.dependencies.length ?? 0)}
+            />
             {(packageStats.npm?.devDependencies.length ?? 0) > 0 && (
-              <Group justify="space-between">
-                <Text size="xs" c="dimmed">
-                  Dev Dependencies
-                </Text>
-                <Text size="sm">
-                  {packageStats.npm?.devDependencies.length ?? 0}
-                </Text>
-              </Group>
+              <MetricRow
+                label="Dev Dependencies"
+                value={String(packageStats.npm?.devDependencies.length ?? 0)}
+              />
             )}
             {(packageStats.npm
               ? Object.keys(packageStats.npm.peerDependencies).length
               : 0) > 0 && (
-              <Group justify="space-between">
-                <Text size="xs" c="dimmed">
-                  Peer Dependencies
-                </Text>
-                <Text size="sm">
-                  {packageStats.npm
+              <MetricRow
+                label="Peer Dependencies"
+                value={String(
+                  packageStats.npm
                     ? Object.keys(packageStats.npm.peerDependencies).length
-                    : 0}
-                </Text>
-              </Group>
+                    : 0,
+                )}
+              />
             )}
+
+            {/* Keywords */}
             {hasKeywords && (
               <Box>
                 <Text size="xs" c="dimmed" mb={4}>
@@ -310,52 +411,74 @@ export function PackageMetricsPanel({
                 </Group>
               </Box>
             )}
+
+            {/* Author */}
+            {packageStats.author && (
+              <MetricRow label="Author" value={packageStats.author.name} />
+            )}
+
+            {/* Maintainers */}
+            {packageStats.maintainers &&
+              packageStats.maintainers.length > 0 && (
+                <Box>
+                  <Group justify="space-between" mb={4}>
+                    <Text size="xs" c="dimmed">
+                      Maintainers ({packageStats.maintainers.length})
+                    </Text>
+                    {(hasOverflow || maintainersExpanded) && (
+                      <UnstyledButton
+                        onClick={() => {
+                          setMaintainersExpanded(!maintainersExpanded);
+                        }}
+                      >
+                        <Group gap={2}>
+                          <Text size="xs" c="blue">
+                            {maintainersExpanded ? "Show less" : "Show all"}
+                          </Text>
+                          {maintainersExpanded ? (
+                            <IconChevronUp
+                              size={14}
+                              color="var(--mantine-color-blue-6)"
+                            />
+                          ) : (
+                            <IconChevronDown
+                              size={14}
+                              color="var(--mantine-color-blue-6)"
+                            />
+                          )}
+                        </Group>
+                      </UnstyledButton>
+                    )}
+                  </Group>
+                  <Box
+                    ref={maintainersRef}
+                    style={{
+                      overflow: "hidden",
+                      maxHeight: maintainersExpanded ? "500px" : "32px",
+                      transition: "max-height 200ms ease-in-out",
+                    }}
+                  >
+                    <Group gap="xs" wrap="wrap">
+                      {packageStats.maintainers.map((m) => (
+                        <Tooltip key={m.name} label={m.name}>
+                          <Avatar
+                            src={getGravatarUrl(m.email, 32)}
+                            size="sm"
+                            radius="xl"
+                            alt={m.name}
+                          />
+                        </Tooltip>
+                      ))}
+                    </Group>
+                  </Box>
+                </Box>
+              )}
           </Stack>
         </Box>
 
-        {/* Score Badges */}
-        <Group gap="xs" wrap="wrap">
-          <Text size="xs" c="dimmed">
-            Quality:
-          </Text>
-          <Badge
-            size="xs"
-            color={getScoreColor(packageStats.quality)}
-            leftSection={isQualityWinner ? <IconTrophy size={10} /> : undefined}
-          >
-            {packageStats.quality ?? "N/A"}
-          </Badge>
-
-          <Text size="xs" c="dimmed">
-            Popularity:
-          </Text>
-          <Badge
-            size="xs"
-            color={getScoreColor(packageStats.popularity)}
-            leftSection={
-              isPopularityWinner ? <IconTrophy size={10} /> : undefined
-            }
-          >
-            {packageStats.popularity ?? "N/A"}
-          </Badge>
-
-          <Text size="xs" c="dimmed">
-            Maintenance:
-          </Text>
-          <Badge
-            size="xs"
-            color={getScoreColor(packageStats.maintenance)}
-            leftSection={
-              isMaintenanceWinner ? <IconTrophy size={10} /> : undefined
-            }
-          >
-            {packageStats.maintenance ?? "N/A"}
-          </Badge>
-        </Group>
-
         <Divider />
 
-        {/* GitHub Data Section */}
+        {/* ===== GitHub Data Section ===== */}
         <Box>
           <Group justify="space-between" mb="xs">
             <Group gap="xs">
@@ -379,43 +502,17 @@ export function PackageMetricsPanel({
             )}
           </Group>
           <Stack gap="xs">
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                Stars
-              </Text>
-              <Group gap={4}>
-                {isStarsWinner && <IconTrophy size={12} color="orange" />}
-                <Text size="sm" fw={isStarsWinner ? 700 : 400}>
-                  {formatNumber(packageStats.stars)}
-                </Text>
-              </Group>
-            </Group>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                Forks
-              </Text>
-              <Group gap={4}>
-                {isForksWinner && <IconTrophy size={12} color="orange" />}
-                <Text size="sm" fw={isForksWinner ? 700 : 400}>
-                  {formatNumber(packageStats.forks)}
-                </Text>
-              </Group>
-            </Group>
-            <Group justify="space-between">
-              <Text size="xs" c="dimmed">
-                Open Issues
-              </Text>
-              <Text size="sm">{formatNumber(packageStats.openIssues)}</Text>
-            </Group>
+            <MetricRow label="Stars" value={formatNumber(packageStats.stars)} />
+            <MetricRow label="Forks" value={formatNumber(packageStats.forks)} />
+            <MetricRow
+              label="Open Issues"
+              value={formatNumber(packageStats.openIssues)}
+            />
             {packageStats.github && (
-              <Group justify="space-between">
-                <Text size="xs" c="dimmed">
-                  Watchers
-                </Text>
-                <Text size="sm">
-                  {formatNumber(packageStats.github.subscribers)}
-                </Text>
-              </Group>
+              <MetricRow
+                label="Watchers"
+                value={formatNumber(packageStats.github.subscribers)}
+              />
             )}
             {packageStats.github?.pushedAt && (
               <Group justify="space-between">
@@ -429,306 +526,231 @@ export function PackageMetricsPanel({
                 </Tooltip>
               </Group>
             )}
-            {packageStats.github?.size !== undefined &&
-              packageStats.github.size > 0 && (
-                <Group justify="space-between">
-                  <Text size="xs" c="dimmed">
-                    Repo Size
-                  </Text>
-                  <Text size="sm">{formatSize(packageStats.github.size)}</Text>
-                </Group>
-              )}
             {packageStats.github?.createdAt && (
+              <MetricRow
+                label="Created"
+                value={formatDate(packageStats.github.createdAt)}
+              />
+            )}
+            {packageStats.github?.updatedAt && (
               <Group justify="space-between">
                 <Text size="xs" c="dimmed">
-                  Created
+                  Last Updated
                 </Text>
-                <Text size="sm">
-                  {formatDate(packageStats.github.createdAt)}
-                </Text>
+                <Tooltip label={formatDate(packageStats.github.updatedAt)}>
+                  <Text size="sm">
+                    {formatRelativeDate(packageStats.github.updatedAt)}
+                  </Text>
+                </Tooltip>
               </Group>
             )}
+            {packageStats.github?.size !== undefined &&
+              packageStats.github.size > 0 && (
+                <MetricRow
+                  label="Repo Size"
+                  value={formatSize(packageStats.github.size)}
+                />
+              )}
+            {packageStats.github?.defaultBranch && (
+              <MetricRow
+                label="Default Branch"
+                value={packageStats.github.defaultBranch}
+              />
+            )}
+
+            {/* Contributors - now in GitHub section */}
+            {packageStats.contributors &&
+              packageStats.contributors.length > 0 && (
+                <Box>
+                  <Group justify="space-between" mb={4}>
+                    <Text size="xs" c="dimmed">
+                      Top Contributors (
+                      {String(packageStats.contributors.length)})
+                    </Text>
+                    {(hasContributorOverflow || contributorsExpanded) && (
+                      <UnstyledButton
+                        onClick={() => {
+                          setContributorsExpanded(!contributorsExpanded);
+                        }}
+                      >
+                        <Group gap={2}>
+                          <Text size="xs" c="blue">
+                            {contributorsExpanded ? "Show less" : "Show all"}
+                          </Text>
+                          {contributorsExpanded ? (
+                            <IconChevronUp
+                              size={14}
+                              color="var(--mantine-color-blue-6)"
+                            />
+                          ) : (
+                            <IconChevronDown
+                              size={14}
+                              color="var(--mantine-color-blue-6)"
+                            />
+                          )}
+                        </Group>
+                      </UnstyledButton>
+                    )}
+                  </Group>
+                  <Box
+                    ref={contributorsRef}
+                    style={{
+                      overflow: "hidden",
+                      maxHeight: contributorsExpanded ? "500px" : "32px",
+                      transition: "max-height 200ms ease-in-out",
+                    }}
+                  >
+                    <Group gap="xs" wrap="wrap">
+                      {packageStats.contributors.map((c) => (
+                        <Tooltip
+                          key={c.username}
+                          label={`${c.username} (${String(c.commitsCount)} commits)`}
+                        >
+                          <Anchor
+                            href={`https://github.com/${c.username}`}
+                            target="_blank"
+                          >
+                            <Avatar
+                              src={`https://github.com/${c.username}.png?size=32`}
+                              size="sm"
+                              radius="xl"
+                              alt={c.username}
+                            />
+                          </Anchor>
+                        </Tooltip>
+                      ))}
+                    </Group>
+                  </Box>
+                </Box>
+              )}
           </Stack>
         </Box>
 
-        {/* Package Info Section */}
-        {(hasAuthorOrMaintainers || hasLinks) && (
-          <>
-            <Divider />
-            <Box>
-              <Group gap="xs" mb="xs">
-                <IconUser size={18} />
-                <Text size="sm" fw={600}>
-                  Package Info
+        <Divider />
+
+        {/* ===== npms.io Derived Scores Section ===== */}
+        <Box>
+          <Group gap="xs" mb="xs">
+            <IconCalculator size={18} color="var(--mantine-color-violet-6)" />
+            <Text size="sm" fw={600}>
+              npms.io Scores
+            </Text>
+            <Tooltip
+              label="Normalized 0-100 scores calculated by npms.io from the raw data above. These enable comparison across packages."
+              multiline
+              w={280}
+            >
+              <IconInfoCircle
+                size={14}
+                color="var(--mantine-color-dimmed)"
+                style={{ cursor: "help" }}
+              />
+            </Tooltip>
+          </Group>
+
+          <Stack gap="md">
+            {/* Overall Score */}
+            <Group justify="space-between">
+              <Group gap={4}>
+                <Text size="xs" c="dimmed">
+                  Overall Score
                 </Text>
+                <Tooltip
+                  label={CALCULATION_TOOLTIPS.finalScore}
+                  multiline
+                  w={250}
+                >
+                  <IconInfoCircle
+                    size={12}
+                    color="var(--mantine-color-dimmed)"
+                    style={{ cursor: "help" }}
+                  />
+                </Tooltip>
               </Group>
-              <Stack gap="xs">
-                {/* Author */}
-                {packageStats.author && (
-                  <Group justify="space-between">
-                    <Text size="xs" c="dimmed">
-                      Author
-                    </Text>
-                    <Text size="sm">{packageStats.author.name}</Text>
-                  </Group>
-                )}
+              <Badge
+                color={getScoreColor(packageStats.finalScore)}
+                variant="filled"
+                size="lg"
+              >
+                {packageStats.finalScore ?? "N/A"}/100
+              </Badge>
+            </Group>
 
-                {/* Maintainers */}
-                {packageStats.maintainers &&
-                  packageStats.maintainers.length > 0 && (
-                    <Box>
-                      <Group justify="space-between" mb={4}>
-                        <Text size="xs" c="dimmed">
-                          Maintainers ({packageStats.maintainers.length})
-                        </Text>
-                        {(hasOverflow || maintainersExpanded) && (
-                          <UnstyledButton
-                            onClick={() => {
-                              setMaintainersExpanded(!maintainersExpanded);
-                            }}
-                          >
-                            <Group gap={2}>
-                              <Text size="xs" c="blue">
-                                {maintainersExpanded ? "Show less" : "Show all"}
-                              </Text>
-                              {maintainersExpanded ? (
-                                <IconChevronUp
-                                  size={14}
-                                  color="var(--mantine-color-blue-6)"
-                                />
-                              ) : (
-                                <IconChevronDown
-                                  size={14}
-                                  color="var(--mantine-color-blue-6)"
-                                />
-                              )}
-                            </Group>
-                          </UnstyledButton>
-                        )}
-                      </Group>
-                      <Box
-                        ref={maintainersRef}
-                        style={{
-                          overflow: "hidden",
-                          maxHeight: maintainersExpanded ? "500px" : "32px",
-                          transition: "max-height 200ms ease-in-out",
-                        }}
-                      >
-                        <Group gap="xs" wrap="wrap">
-                          {packageStats.maintainers.map((m) => (
-                            <Tooltip key={m.name} label={m.name}>
-                              <Avatar
-                                src={getGravatarUrl(m.email, 32)}
-                                size="sm"
-                                radius="xl"
-                                alt={m.name}
-                              />
-                            </Tooltip>
-                          ))}
-                        </Group>
-                      </Box>
-                    </Box>
-                  )}
+            {/* Main Score Badges */}
+            <Group gap="xs" wrap="wrap">
+              <Tooltip label={CALCULATION_TOOLTIPS.quality} multiline w={250}>
+                <Badge
+                  size="sm"
+                  color={getScoreColor(packageStats.quality)}
+                  style={{ cursor: "help" }}
+                >
+                  Quality: {packageStats.quality ?? "N/A"}
+                </Badge>
+              </Tooltip>
 
-                {/* Contributors */}
-                {packageStats.contributors &&
-                  packageStats.contributors.length > 0 && (
-                    <Box>
-                      <Text size="xs" c="dimmed" mb={4}>
-                        Top Contributors (
-                        {String(packageStats.contributors.length)})
-                      </Text>
-                      <Group gap="xs" wrap="wrap">
-                        {packageStats.contributors.slice(0, 10).map((c) => (
-                          <Tooltip
-                            key={c.username}
-                            label={`${c.username} (${String(c.commitsCount)} commits)`}
-                          >
-                            <Anchor
-                              href={`https://github.com/${c.username}`}
-                              target="_blank"
-                            >
-                              <Avatar
-                                src={`https://github.com/${c.username}.png?size=32`}
-                                size="sm"
-                                radius="xl"
-                                alt={c.username}
-                              />
-                            </Anchor>
-                          </Tooltip>
-                        ))}
-                        {packageStats.contributors.length > 10 && (
-                          <Avatar size="sm" radius="xl">
-                            +{String(packageStats.contributors.length - 10)}
-                          </Avatar>
-                        )}
-                      </Group>
-                    </Box>
-                  )}
+              <Tooltip
+                label={CALCULATION_TOOLTIPS.popularity}
+                multiline
+                w={250}
+              >
+                <Badge
+                  size="sm"
+                  color={getScoreColor(packageStats.popularity)}
+                  style={{ cursor: "help" }}
+                >
+                  Popularity: {packageStats.popularity ?? "N/A"}
+                </Badge>
+              </Tooltip>
 
-                {/* Links */}
-                {hasLinks && (
-                  <Box>
-                    <Text size="xs" c="dimmed" mb={4}>
-                      Links
-                    </Text>
-                    <Group gap="xs">
-                      {packageStats.links?.npm && (
-                        <Anchor
-                          href={packageStats.links.npm}
-                          target="_blank"
-                          size="xs"
-                        >
-                          <Group gap={2}>
-                            npm <IconExternalLink size={10} />
-                          </Group>
-                        </Anchor>
-                      )}
-                      {packageStats.links?.repository && (
-                        <Anchor
-                          href={packageStats.links.repository}
-                          target="_blank"
-                          size="xs"
-                        >
-                          <Group gap={2}>
-                            Repository <IconExternalLink size={10} />
-                          </Group>
-                        </Anchor>
-                      )}
-                      {packageStats.links?.homepage && (
-                        <Anchor
-                          href={packageStats.links.homepage}
-                          target="_blank"
-                          size="xs"
-                        >
-                          <Group gap={2}>
-                            Homepage <IconExternalLink size={10} />
-                          </Group>
-                        </Anchor>
-                      )}
-                      {packageStats.links?.bugs && (
-                        <Anchor
-                          href={packageStats.links.bugs}
-                          target="_blank"
-                          size="xs"
-                        >
-                          <Group gap={2}>
-                            Issues <IconExternalLink size={10} />
-                          </Group>
-                        </Anchor>
-                      )}
-                    </Group>
-                  </Box>
-                )}
-              </Stack>
-            </Box>
-          </>
-        )}
+              <Tooltip
+                label={CALCULATION_TOOLTIPS.maintenance}
+                multiline
+                w={250}
+              >
+                <Badge
+                  size="sm"
+                  color={getScoreColor(packageStats.maintenance)}
+                  style={{ cursor: "help" }}
+                >
+                  Maintenance: {packageStats.maintenance ?? "N/A"}
+                </Badge>
+              </Tooltip>
+            </Group>
 
-        {/* Detailed Scores Section */}
-        {hasEvaluation && (
-          <>
-            <Divider />
-            <Box>
-              <Group gap="xs" mb="xs">
-                <IconTrophy size={18} />
-                <Text size="sm" fw={600}>
-                  Detailed Scores
-                </Text>
-              </Group>
+            {/* Detailed Breakdowns - all derived 0-100 scores */}
+            {hasEvaluation && (
               <Stack gap="md">
                 {/* Quality Breakdown */}
                 {packageStats.evaluation?.quality && (
                   <Box>
                     <Text size="xs" fw={500} mb={4}>
-                      Quality
+                      Quality Breakdown
                     </Text>
                     <Stack gap={2}>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Tests
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation.quality.tests}%
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Health
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation.quality.health}%
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Carefulness
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation.quality.carefulness}%
-                        </Badge>
-                      </Group>
-                    </Stack>
-                  </Box>
-                )}
-
-                {/* Popularity Breakdown - these are raw metrics, not scores */}
-                {packageStats.evaluation?.popularity && (
-                  <Box>
-                    <Text size="xs" fw={500} mb={4}>
-                      Popularity
-                    </Text>
-                    <Stack gap={2}>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Community Interest
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation.popularity.communityInterest.toLocaleString()}
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Downloads Count
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {formatNumber(
-                            packageStats.evaluation.popularity.downloadsCount,
-                          )}
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Downloads Trend
-                        </Text>
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          color={
-                            packageStats.evaluation.popularity
-                              .downloadsAcceleration >= 0
-                              ? "green"
-                              : "red"
-                          }
-                        >
-                          {packageStats.evaluation.popularity
-                            .downloadsAcceleration >= 0
-                            ? "+"
-                            : ""}
-                          {formatNumber(
-                            packageStats.evaluation.popularity
-                              .downloadsAcceleration,
-                          )}
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Dependents Count
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation.popularity.dependentsCount.toLocaleString()}
-                        </Badge>
-                      </Group>
+                      <MetricRow
+                        label="Tests"
+                        value={`${String(packageStats.evaluation.quality.tests)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.tests}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Health"
+                        value={`${String(packageStats.evaluation.quality.health)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.health}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Carefulness"
+                        value={`${String(packageStats.evaluation.quality.carefulness)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.carefulness}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Branding"
+                        value={`${String(packageStats.evaluation.quality.branding)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.branding}
+                        isBadge
+                      />
                     </Stack>
                   </Box>
                 )}
@@ -737,34 +759,106 @@ export function PackageMetricsPanel({
                 {packageStats.evaluation?.maintenance && (
                   <Box>
                     <Text size="xs" fw={500} mb={4}>
-                      Maintenance
+                      Maintenance Breakdown
                     </Text>
                     <Stack gap={2}>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Release Frequency
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {
-                            packageStats.evaluation.maintenance
-                              .releasesFrequency
-                          }
-                          %
-                        </Badge>
-                      </Group>
-                      <Group justify="space-between">
-                        <Text size="xs" c="dimmed">
-                          Commit Frequency
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {packageStats.evaluation.maintenance.commitsFrequency}
-                          %
-                        </Badge>
-                      </Group>
+                      <MetricRow
+                        label="Release Frequency"
+                        value={`${String(packageStats.evaluation.maintenance.releasesFrequency)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.releasesFrequency}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Commit Frequency"
+                        value={`${String(packageStats.evaluation.maintenance.commitsFrequency)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.commitsFrequency}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Open Issues"
+                        value={`${String(packageStats.evaluation.maintenance.openIssues)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.openIssues}
+                        isBadge
+                      />
+                      <MetricRow
+                        label="Issues Distribution"
+                        value={`${String(packageStats.evaluation.maintenance.issuesDistribution)}%`}
+                        tooltip={CALCULATION_TOOLTIPS.issuesDistribution}
+                        isBadge
+                      />
                     </Stack>
                   </Box>
                 )}
               </Stack>
+            )}
+          </Stack>
+        </Box>
+
+        {/* ===== Comparison Analysis Section (Our Calculations) ===== */}
+        {(isQualityWinner ||
+          isPopularityWinner ||
+          isMaintenanceWinner ||
+          isDownloadsWinner ||
+          isStarsWinner ||
+          isForksWinner ||
+          isDependentsWinner) && (
+          <>
+            <Divider />
+            <Box>
+              <Group gap="xs" mb="xs">
+                <IconTrophy size={18} color="var(--mantine-color-orange-6)" />
+                <Text size="sm" fw={600}>
+                  Comparison Results
+                </Text>
+                <Tooltip
+                  label="Metrics where this package leads compared to others in your comparison."
+                  multiline
+                  w={250}
+                >
+                  <IconInfoCircle
+                    size={14}
+                    color="var(--mantine-color-dimmed)"
+                    style={{ cursor: "help" }}
+                  />
+                </Tooltip>
+              </Group>
+              <Group gap="xs" wrap="wrap">
+                {isDownloadsWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Most Downloads
+                  </Badge>
+                )}
+                {isStarsWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Most Stars
+                  </Badge>
+                )}
+                {isForksWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Most Forks
+                  </Badge>
+                )}
+                {isDependentsWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Most Dependents
+                  </Badge>
+                )}
+                {isQualityWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Highest Quality
+                  </Badge>
+                )}
+                {isPopularityWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Most Popular
+                  </Badge>
+                )}
+                {isMaintenanceWinner && (
+                  <Badge size="sm" color="orange" variant="light">
+                    Best Maintained
+                  </Badge>
+                )}
+              </Group>
             </Box>
           </>
         )}
