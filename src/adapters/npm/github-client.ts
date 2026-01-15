@@ -75,15 +75,19 @@ export class GithubClient {
 
   /**
    * Parse owner and repo from GitHub URL
-   * Supports formats: github.com/owner/repo, git+https://github.com/owner/repo.git
+   * Supports formats: github.com/owner/repo, github.com/owner/repo.js, git+https://github.com/owner/repo.git
    */
   private parseRepoUrl(url: string): { owner: string; repo: string } | null {
-    const match = url.match(/github\.com\/([^/]+)\/([^/.]+)/);
+    // Match owner and repo, allowing dots in repo name (e.g., next.js)
+    // Stop at .git suffix, query params, or end of string
+    const match = url.match(
+      /github\.com\/([^/]+)\/([^/]+?)(?:\.git)?(?:[?#]|$)/,
+    );
     if (!match) return null;
 
     return {
       owner: match[1],
-      repo: match[2].replace(".git", ""),
+      repo: match[2],
     };
   }
 

@@ -75,7 +75,8 @@ export class NpmAdapter implements EcosystemAdapter {
       quality: Math.round(score.detail.quality * 100),
       popularity: Math.round(score.detail.popularity * 100),
       maintenance: Math.round(score.detail.maintenance * 100),
-      weeklyDownloads: npmData.downloads[0]?.count,
+      // Index 1 is weekly downloads, index 0 is daily
+      weeklyDownloads: npmData.downloads[1]?.count,
       npm: {
         dependencies: Object.keys(metadata.dependencies ?? {}),
         devDependencies: Object.keys(metadata.devDependencies ?? {}),
