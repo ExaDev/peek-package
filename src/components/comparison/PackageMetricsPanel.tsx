@@ -421,114 +421,115 @@ export function PackageMetricsPanel({
           </Stack>
         </Box>
 
-        {/* Accordion Sections for Additional Data */}
-        <Accordion variant="separated" radius="sm">
-          {/* Package Info Section */}
-          {(hasAuthorOrMaintainers || hasLinks) && (
-            <Accordion.Item value="package-info">
-              <Accordion.Control icon={<IconUser size={16} />}>
-                <Text size="sm">Package Info</Text>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="xs">
-                  {/* Author */}
-                  {packageStats.author && (
-                    <Group justify="space-between">
-                      <Text size="xs" c="dimmed">
-                        Author
-                      </Text>
-                      <Text size="sm">{packageStats.author.name}</Text>
+        {/* Package Info Section */}
+        {(hasAuthorOrMaintainers || hasLinks) && (
+          <>
+            <Divider />
+            <Box>
+              <Group gap="xs" mb="xs">
+                <IconUser size={18} />
+                <Text size="sm" fw={600}>
+                  Package Info
+                </Text>
+              </Group>
+              <Stack gap="xs">
+                {/* Author */}
+                {packageStats.author && (
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      Author
+                    </Text>
+                    <Text size="sm">{packageStats.author.name}</Text>
+                  </Group>
+                )}
+
+                {/* Maintainers */}
+                {(packageStats.maintainers?.length ?? 0) > 0 && (
+                  <Box>
+                    <Text size="xs" c="dimmed" mb={4}>
+                      Maintainers
+                    </Text>
+                    <Avatar.Group spacing="sm">
+                      {packageStats.maintainers?.slice(0, 5).map((m) => (
+                        <Tooltip key={m.name} label={m.name}>
+                          <Avatar
+                            src={getGravatarUrl(m.email, 32)}
+                            size="sm"
+                            radius="xl"
+                            alt={m.name}
+                          />
+                        </Tooltip>
+                      ))}
+                      {(packageStats.maintainers?.length ?? 0) > 5 && (
+                        <Avatar size="sm" radius="xl">
+                          +{String((packageStats.maintainers?.length ?? 0) - 5)}
+                        </Avatar>
+                      )}
+                    </Avatar.Group>
+                  </Box>
+                )}
+
+                {/* Links */}
+                {hasLinks && (
+                  <Box>
+                    <Text size="xs" c="dimmed" mb={4}>
+                      Links
+                    </Text>
+                    <Group gap="xs">
+                      {packageStats.links?.npm && (
+                        <Anchor
+                          href={packageStats.links.npm}
+                          target="_blank"
+                          size="xs"
+                        >
+                          <Group gap={2}>
+                            npm <IconExternalLink size={10} />
+                          </Group>
+                        </Anchor>
+                      )}
+                      {packageStats.links?.repository && (
+                        <Anchor
+                          href={packageStats.links.repository}
+                          target="_blank"
+                          size="xs"
+                        >
+                          <Group gap={2}>
+                            Repository <IconExternalLink size={10} />
+                          </Group>
+                        </Anchor>
+                      )}
+                      {packageStats.links?.homepage && (
+                        <Anchor
+                          href={packageStats.links.homepage}
+                          target="_blank"
+                          size="xs"
+                        >
+                          <Group gap={2}>
+                            Homepage <IconExternalLink size={10} />
+                          </Group>
+                        </Anchor>
+                      )}
+                      {packageStats.links?.bugs && (
+                        <Anchor
+                          href={packageStats.links.bugs}
+                          target="_blank"
+                          size="xs"
+                        >
+                          <Group gap={2}>
+                            Issues <IconExternalLink size={10} />
+                          </Group>
+                        </Anchor>
+                      )}
                     </Group>
-                  )}
+                  </Box>
+                )}
+              </Stack>
+            </Box>
+          </>
+        )}
 
-                  {/* Maintainers */}
-                  {(packageStats.maintainers?.length ?? 0) > 0 && (
-                    <Box>
-                      <Text size="xs" c="dimmed" mb={4}>
-                        Maintainers
-                      </Text>
-                      <Avatar.Group spacing="sm">
-                        {packageStats.maintainers?.slice(0, 5).map((m) => (
-                          <Tooltip key={m.name} label={m.name}>
-                            <Avatar
-                              src={getGravatarUrl(m.email, 32)}
-                              size="sm"
-                              radius="xl"
-                              alt={m.name}
-                            />
-                          </Tooltip>
-                        ))}
-                        {(packageStats.maintainers?.length ?? 0) > 5 && (
-                          <Avatar size="sm" radius="xl">
-                            +
-                            {String(
-                              (packageStats.maintainers?.length ?? 0) - 5,
-                            )}
-                          </Avatar>
-                        )}
-                      </Avatar.Group>
-                    </Box>
-                  )}
-
-                  {/* Links */}
-                  {hasLinks && (
-                    <Box>
-                      <Text size="xs" c="dimmed" mb={4}>
-                        Links
-                      </Text>
-                      <Group gap="xs">
-                        {packageStats.links?.npm && (
-                          <Anchor
-                            href={packageStats.links.npm}
-                            target="_blank"
-                            size="xs"
-                          >
-                            <Group gap={2}>
-                              npm <IconExternalLink size={10} />
-                            </Group>
-                          </Anchor>
-                        )}
-                        {packageStats.links?.repository && (
-                          <Anchor
-                            href={packageStats.links.repository}
-                            target="_blank"
-                            size="xs"
-                          >
-                            <Group gap={2}>
-                              Repository <IconExternalLink size={10} />
-                            </Group>
-                          </Anchor>
-                        )}
-                        {packageStats.links?.homepage && (
-                          <Anchor
-                            href={packageStats.links.homepage}
-                            target="_blank"
-                            size="xs"
-                          >
-                            <Group gap={2}>
-                              Homepage <IconExternalLink size={10} />
-                            </Group>
-                          </Anchor>
-                        )}
-                        {packageStats.links?.bugs && (
-                          <Anchor
-                            href={packageStats.links.bugs}
-                            target="_blank"
-                            size="xs"
-                          >
-                            <Group gap={2}>
-                              Issues <IconExternalLink size={10} />
-                            </Group>
-                          </Anchor>
-                        )}
-                      </Group>
-                    </Box>
-                  )}
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-          )}
-
+        {/* Accordion for Detailed Scores */}
+        <Accordion variant="separated" radius="sm">
           {/* Detailed Scores Section */}
           {hasEvaluation && (
             <Accordion.Item value="detailed-scores">
