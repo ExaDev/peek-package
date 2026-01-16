@@ -9,6 +9,7 @@ import {
   Group,
   Menu,
   Paper,
+  Text,
   Title,
   Tooltip,
 } from "@mantine/core";
@@ -172,16 +173,26 @@ export function StickyInputBar({
           >
             {/* Mobile: Show title when search is collapsed, hide when expanded */}
             {isMobile && !isSearchExpanded && (
-              <Title order={4} style={{ whiteSpace: "nowrap" }}>
-                Pickage
-              </Title>
+              <Group gap={6} wrap="nowrap">
+                <Title order={4} style={{ whiteSpace: "nowrap" }}>
+                  Pickage
+                </Title>
+                <Text size="xs" c="dimmed">
+                  v{__APP_VERSION__}
+                </Text>
+              </Group>
             )}
 
             {/* Desktop: Always show title */}
             {!isMobile && (
-              <Title order={4} style={{ whiteSpace: "nowrap" }}>
-                Pickage
-              </Title>
+              <Group gap={6} wrap="nowrap">
+                <Title order={4} style={{ whiteSpace: "nowrap" }}>
+                  Pickage
+                </Title>
+                <Text size="xs" c="dimmed">
+                  v{__APP_VERSION__}
+                </Text>
+              </Group>
             )}
 
             {/* Mobile: Search icon when collapsed */}
