@@ -1,7 +1,7 @@
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { NpmAdapter } from "@/adapters/npm";
-import type { PeekPackageRequest, PackageStats } from "@/types/adapter";
+import type { PickageRequest, PackageStats } from "@/types/adapter";
 import { cacheKeys } from "@/utils/cache";
 
 const adapter = new NpmAdapter();
@@ -19,7 +19,7 @@ export function usePackage(packageName: string, enabled: boolean = true) {
       {
         queryKey: cacheKeys.package(packageName),
         queryFn: async () => {
-          const request: PeekPackageRequest = {
+          const request: PickageRequest = {
             packageName,
             ecosystem: "npm",
           };

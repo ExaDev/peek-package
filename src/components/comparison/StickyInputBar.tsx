@@ -173,14 +173,14 @@ export function StickyInputBar({
             {/* Mobile: Show title when search is collapsed, hide when expanded */}
             {isMobile && !isSearchExpanded && (
               <Title order={4} style={{ whiteSpace: "nowrap" }}>
-                PeekPackage
+                Pickage
               </Title>
             )}
 
             {/* Desktop: Always show title */}
             {!isMobile && (
               <Title order={4} style={{ whiteSpace: "nowrap" }}>
-                PeekPackage
+                Pickage
               </Title>
             )}
 

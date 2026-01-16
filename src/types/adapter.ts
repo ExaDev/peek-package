@@ -1,7 +1,7 @@
 /**
  * Request interface for fetching package comparison data
  */
-export interface PeekPackageRequest {
+export interface PickageRequest {
   packageName: string;
   ecosystem: "npm" | "pypi" | "cargo";
 }
@@ -173,7 +173,7 @@ export interface EcosystemAdapter {
    * @param request Package comparison request
    * @returns Normalized package statistics
    */
-  fetch(request: PeekPackageRequest): Promise<PackageStats>;
+  fetch(request: PickageRequest): Promise<PackageStats>;
 
   /**
    * Check if adapter supports the given ecosystem

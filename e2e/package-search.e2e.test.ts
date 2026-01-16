@@ -8,7 +8,7 @@ test.describe("Package Search Journey", () => {
 
   test("should display the app title", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: "PeekPackage", level: 4 }),
+      page.getByRole("heading", { name: "Pickage", level: 4 }),
     ).toBeVisible();
   });
 

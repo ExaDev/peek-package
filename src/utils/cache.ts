@@ -19,7 +19,7 @@ export const localStoragePersister = createAsyncStoragePersister({
       return Promise.resolve();
     },
   },
-  key: "PEEKPACKAGE_QUERY_CACHE",
+  key: "PICKAGE_QUERY_CACHE",
   // Throttle writes to avoid performance issues
   throttleTime: 1000,
 });

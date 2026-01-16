@@ -1,6 +1,6 @@
 import type {
   EcosystemAdapter,
-  PeekPackageRequest,
+  PickageRequest,
   PackageStats,
   NpmSpecificStats,
   GithubSpecificStats,
@@ -239,7 +239,7 @@ export class NpmAdapter implements EcosystemAdapter {
   /**
    * Fetch package statistics from all sources (legacy combined method)
    */
-  async fetch(request: PeekPackageRequest): Promise<PackageStats> {
+  async fetch(request: PickageRequest): Promise<PackageStats> {
     const npmData = await this.fetchNpmData(request.packageName);
 
     const stats: PackageStats = {
