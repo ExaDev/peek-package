@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/ExaDev/peek-package/compare/v1.4.0...v1.5.0) (2026-01-16)
+
+### Bug Fixes
+
+- **ui:** improve mobile responsive layout ([177278b](https://github.com/ExaDev/peek-package/commit/177278b6bd1c9f0d8e63fadeefc8acb4640700fd))
+- **ui:** prevent sticky bar height change on search expand ([2ad9a62](https://github.com/ExaDev/peek-package/commit/2ad9a62e23eada160cebd5376541248f8b382e43))
+
+### Features
+
+- **ui:** add collapsible search bar for mobile ([b00b2e0](https://github.com/ExaDev/peek-package/commit/b00b2e0d772206c60521fcf6ef579d77cb716a95))
+- **ui:** collapse search on blur when empty or whitespace ([6f277b7](https://github.com/ExaDev/peek-package/commit/6f277b709c538af79add46a10795eab30bafc528))
+
 # [1.4.0](https://github.com/ExaDev/peek-package/compare/v1.3.0...v1.4.0) (2026-01-15)
 
 ### Bug Fixes
