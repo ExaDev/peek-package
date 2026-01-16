@@ -134,8 +134,10 @@ export function CarouselView({
   const columnWidth = isMobile ? 320 : 450;
   const sidebarWidth = 48;
 
-  // Grid columns: sticky sidebar + package columns
-  const gridColumnStyle = `${String(sidebarWidth)}px repeat(${String(columnCount)}, ${String(columnWidth)}px)`;
+  // Grid columns: on mobile, no sidebar; on desktop, sidebar + fixed-width columns
+  const gridColumnStyle = isMobile
+    ? `repeat(${String(columnCount)}, ${String(columnWidth)}px)`
+    : `${String(sidebarWidth)}px repeat(${String(columnCount)}, ${String(columnWidth)}px)`;
 
   return (
     <ScrollArea
@@ -162,8 +164,9 @@ export function CarouselView({
             margin: "0 auto",
           }}
         >
-          {/* Sort controls - render as direct grid children for row alignment */}
-          {onSortChange &&
+          {/* Sort controls - render as direct grid children for row alignment (desktop only) */}
+          {!isMobile &&
+            onSortChange &&
             SortSidebar({
               sortCriteria,
               onSortChange,
@@ -184,8 +187,8 @@ export function CarouselView({
               dependentsCount: packageWinners.dependentsCount,
             };
 
-            // Column 1 is sidebar, packages start at column 2
-            const col = colIndex + 2;
+            // On mobile: no sidebar, packages start at column 1; on desktop: column 1 is sidebar, packages start at column 2
+            const col = isMobile ? colIndex + 1 : colIndex + 2;
 
             return (
               <Card
@@ -305,8 +308,8 @@ export function CarouselView({
             marginTop: "calc(-1 * var(--mantine-radius-default))",
           }}
         >
-          {/* Empty spacer for sidebar column */}
-          <Box style={{ gridColumn: 1 }} />
+          {/* Empty spacer for sidebar column (desktop only) */}
+          {!isMobile && <Box style={{ gridColumn: 1 }} />}
 
           {packages.map((pkg, colIndex) => {
             const packageStats =
@@ -319,7 +322,7 @@ export function CarouselView({
                 padding={0}
                 withBorder
                 style={{
-                  gridColumn: colIndex + 2,
+                  gridColumn: isMobile ? colIndex + 1 : colIndex + 2,
                   borderTop: "none",
                   borderTopLeftRadius: 0,
                   borderTopRightRadius: 0,
