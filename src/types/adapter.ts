@@ -61,7 +61,7 @@ export interface PackageStats {
     bugs?: string | null;
   };
 
-  // Detailed evaluation scores (npms.io)
+  // Detailed evaluation scores (npms.io) - all as percentages 0-100
   evaluation?: {
     quality: {
       carefulness: number;
@@ -70,10 +70,10 @@ export interface PackageStats {
       branding: number;
     };
     popularity: {
-      communityInterest: number;
-      downloadsCount: number;
-      downloadsAcceleration: number;
-      dependentsCount: number;
+      communityInterest: number; // Raw metric (stars + forks)
+      downloadsCount: number; // Raw metric (total downloads)
+      downloadsAcceleration: number; // Raw metric (download growth rate)
+      dependentsCount: number; // Raw metric (number of dependents)
     };
     maintenance: {
       releasesFrequency: number;
@@ -133,6 +133,14 @@ export interface PyPiSpecificStats {
   classifiers: string[];
   uploads: number;
   upload_time: string | null;
+  keywords: string[];
+  maintainer: string | null;
+  maintainerEmail: string | null;
+  platform: string | null;
+  projectUrls: Record<string, string>;
+  fullDescription: string | null;
+  yanked: boolean;
+  yankedReason: string | null;
 }
 
 /**

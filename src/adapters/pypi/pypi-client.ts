@@ -21,14 +21,24 @@ export interface PyPiPackageData {
     name: string;
     version: string;
     summary: string | null;
+    description: string | null;
     home_page: string | null;
     author: string | null;
     author_email: string | null;
+    maintainer: string | null;
+    maintainer_email: string | null;
     license: string | null;
+    keywords: string | null;
+    platform: string | null;
     project_urls: Record<string, string> | null;
     requires_dist: string[] | null;
     requires_python: string | null;
     classifiers: string[] | null;
+    bugtrack_url: string | null;
+    docs_url: string | null;
+    download_url: string | null;
+    yanked: boolean;
+    yanked_reason: string | null;
   };
   releases: Record<string, Array<{ upload_time_iso_8601: string }>>;
   urls: Array<{
