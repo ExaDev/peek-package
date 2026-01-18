@@ -54,7 +54,7 @@ export function parsePackagesFromUrl(): UrlPackage[] {
 
       // Support both npm and pypi ecosystems
       if (ecosystem === "npm" || ecosystem === "pypi") {
-        return { ecosystem: ecosystem, name };
+        return { ecosystem: ecosystem as "npm" | "pypi", name };
       }
 
       console.warn(`Unsupported ecosystem: ${ecosystem}, defaulting to npm`);
