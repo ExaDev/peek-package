@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import { IconRefresh, IconTrophy, IconX } from "@tabler/icons-react";
 import type { ViewProps } from "./types";
+import type { PackageStats } from "@/types/adapter";
 
 /**
  * Format large numbers with K/M suffix
@@ -37,36 +38,93 @@ function getScoreColor(score: number | undefined): string {
 interface MetricDef {
   key: string;
   label: string;
-  format: (v: number | undefined) => string;
+  format: (stats: PackageStats | null) => string;
   isScore?: boolean;
+  skipWinner?: boolean; // Skip winner indicator for this metric
 }
 
-const METRICS: MetricDef[] = [
-  { key: "weeklyDownloads", label: "Weekly Downloads", format: formatNumber },
-  { key: "stars", label: "GitHub Stars", format: formatNumber },
-  { key: "forks", label: "Forks", format: formatNumber },
-  {
-    key: "quality",
-    label: "Quality Score",
-    format: (v: number | undefined) =>
-      v !== undefined ? `${String(v)}%` : "N/A",
-    isScore: true,
-  },
-  {
-    key: "popularity",
-    label: "Popularity Score",
-    format: (v: number | undefined) =>
-      v !== undefined ? `${String(v)}%` : "N/A",
-    isScore: true,
-  },
-  {
-    key: "maintenance",
-    label: "Maintenance Score",
-    format: (v: number | undefined) =>
-      v !== undefined ? `${String(v)}%` : "N/A",
-    isScore: true,
-  },
-];
+/**
+ * Generate metrics dynamically based on package ecosystems
+ */
+function generateMetrics(packagesData: PackageStats[]): MetricDef[] {
+  const hasNpm = packagesData.some((p) => p.npm);
+  const hasPyPI = packagesData.some((p) => p.pypi);
+
+  const metrics: MetricDef[] = [];
+
+  // npm-specific metrics
+  if (hasNpm) {
+    metrics.push({
+      key: "weeklyDownloads",
+      label: "Weekly Downloads",
+      format: (stats) => formatNumber(stats?.weeklyDownloads),
+    });
+    metrics.push({
+      key: "dependentsCount",
+      label: "Dependents",
+      format: (stats) => formatNumber(stats?.dependentsCount),
+    });
+  }
+
+  // PyPI-specific metrics
+  if (hasPyPI) {
+    metrics.push({
+      key: "requiresPython",
+      label: "Python Version",
+      format: (stats) => stats?.pypi?.requiresPython ?? "Any",
+      skipWinner: true,
+    });
+    metrics.push({
+      key: "uploads",
+      label: "Total Uploads",
+      format: (stats) => String(stats?.pypi?.uploads ?? 0),
+      skipWinner: true,
+    });
+  }
+
+  // Shared metrics (always shown)
+  metrics.push({
+    key: "stars",
+    label: "GitHub Stars",
+    format: (stats) => formatNumber(stats?.stars),
+  });
+  metrics.push({
+    key: "forks",
+    label: "Forks",
+    format: (stats) => formatNumber(stats?.forks),
+  });
+
+  // npms.io scores (only for npm packages)
+  if (hasNpm) {
+    metrics.push({
+      key: "quality",
+      label: "Quality Score",
+      format: (stats) =>
+        stats?.quality !== undefined ? `${String(stats.quality)}%` : "N/A",
+      isScore: true,
+    });
+    metrics.push({
+      key: "popularity",
+      label: "Popularity Score",
+      format: (stats) =>
+        stats?.popularity !== undefined
+          ? `${String(stats.popularity)}%`
+          : "N/A",
+      isScore: true,
+    });
+    metrics.push({
+      key: "maintenance",
+      label: "Maintenance Score",
+      format: (stats) =>
+        stats?.maintenance !== undefined
+          ? `${String(stats.maintenance)}%`
+          : "N/A",
+      isScore: true,
+    });
+  }
+
+  return metrics;
+}
 
 /**
  * Table view - metrics comparison table
@@ -88,6 +146,9 @@ export function TableView({
   refetchingGithubPackages: _refetchingGithubPackages,
   onRefreshGithub: _onRefreshGithub,
 }: ViewProps) {
+  // Generate metrics dynamically based on package ecosystems
+  const METRICS = generateMetrics(packagesData);
+
   if (isLoading) {
     return (
       <Paper p="xl" radius="md" withBorder>
@@ -152,34 +213,48 @@ export function TableView({
                   <Text fw={500}>{metric.label}</Text>
                 </Table.Td>
                 {packages.map((pkg) => {
-                  const stats = packagesData.find(
-                    (p) => p.name === pkg.packageName,
-                  );
-                  const value = stats?.[metric.key as keyof typeof stats] as
-                    | number
-                    | undefined;
+                  const stats =
+                    packagesData.find((p) => p.name === pkg.packageName) ?? null;
+
+                  // Extract numeric value for winner check and score color
+                  let numericValue: number | undefined;
+                  if (metric.key === "requiresPython") {
+                    numericValue = undefined; // Skip winner for Python version
+                  } else if (metric.key === "uploads") {
+                    numericValue = stats?.pypi?.uploads;
+                  } else {
+                    numericValue = stats?.[metric.key as keyof typeof stats] as
+                      | number
+                      | undefined;
+                  }
+
                   const pkgWinners = winnerMetrics[pkg.packageName];
-                  const isWinner = pkgWinners[metric.key];
+                  const isWinner =
+                    !metric.skipWinner &&
+                    pkgWinners[metric.key] &&
+                    packages.length > 1;
 
                   return (
                     <Table.Td key={pkg.id}>
                       <Group gap="xs" wrap="nowrap">
                         {metric.isScore ? (
                           <Badge
-                            color={getScoreColor(value)}
+                            color={getScoreColor(numericValue)}
                             variant="light"
                             size="lg"
                           >
-                            {metric.format(value)}
+                            {metric.format(stats)}
                           </Badge>
                         ) : (
-                          <Text>{metric.format(value)}</Text>
+                          <Text>{metric.format(stats)}</Text>
                         )}
-                        {isWinner && packages.length > 1 && (
+                        {isWinner && (
                           <Tooltip label="Best in category">
                             <IconTrophy
                               size={16}
-                              style={{ color: "var(--mantine-color-orange-6)" }}
+                              style={{
+                                color: "var(--mantine-color-orange-6)",
+                              }}
                             />
                           </Tooltip>
                         )}
