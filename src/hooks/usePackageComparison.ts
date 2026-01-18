@@ -4,10 +4,15 @@ import { NpmAdapter } from "@/adapters/npm";
 import { PyPiAdapter } from "@/adapters/pypi";
 import type { PickageRequest, PackageStats } from "@/types/adapter";
 import { cacheKeys } from "@/utils/cache";
-import { detectPackageEcosystem } from "@/utils/parseDependencies";
 
 const npmAdapter = new NpmAdapter();
 const pypiAdapter = new PyPiAdapter();
+
+// Input type for package requests with explicit ecosystem
+export interface PackageRequest {
+  packageName: string;
+  ecosystem: "npm" | "pypi";
+}
 
 // 72 hours in milliseconds
 const STALE_TIME = 72 * 60 * 60 * 1000;
@@ -15,11 +20,13 @@ const GC_TIME = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Hook for fetching package data with caching
+ * @deprecated Use usePackageComparison which accepts explicit ecosystem info
  */
-export function usePackage(packageName: string, enabled: boolean = true) {
-  const detected = detectPackageEcosystem(packageName);
-  const ecosystem = detected === "unknown" ? "npm" : detected;
-
+export function usePackage(
+  packageName: string,
+  ecosystem: "npm" | "pypi" = "npm",
+  enabled: boolean = true,
+) {
   return useQueries({
     queries: [
       {
@@ -42,37 +49,34 @@ export function usePackage(packageName: string, enabled: boolean = true) {
 
 /**
  * Hook for comparing multiple packages with separate npm and GitHub queries
+ * @param packages - Array of package requests with explicit ecosystem info
  */
-export function usePackageComparison(packageNames: string[]) {
+export function usePackageComparison(packages: PackageRequest[]) {
   const queryClient = useQueryClient();
 
-  // Detect ecosystem for each package (default to npm if unknown)
-  const ecosystems = useMemo(
-    () =>
-      packageNames.map((name) => {
-        const detected = detectPackageEcosystem(name);
-        return detected === "unknown" ? "npm" : detected;
-      }),
-    [packageNames],
-  );
+  // Extract package names and ecosystems
+  const packageNames = packages.map((p) => p.packageName);
+  const ecosystems = packages.map((p) => p.ecosystem);
 
   // Fetch package data (from appropriate ecosystem) for all packages
   const packageResults = useQueries({
-    queries: packageNames.map((name, index) => ({
-      queryKey: cacheKeys.package(name),
+    queries: packages.map((pkg) => ({
+      queryKey: cacheKeys.package(pkg.packageName),
       queryFn: async () => {
-        const ecosystem = ecosystems[index];
-        const request: PickageRequest = { packageName: name, ecosystem };
-        const adapter = ecosystem === "pypi" ? pypiAdapter : npmAdapter;
+        const request: PickageRequest = {
+          packageName: pkg.packageName,
+          ecosystem: pkg.ecosystem,
+        };
+        const adapter = pkg.ecosystem === "pypi" ? pypiAdapter : npmAdapter;
 
         // For npm packages, use the optimized fetchNpmData method
         // For other ecosystems, use the regular fetch method
-        if (ecosystem === "npm" && "fetchNpmData" in adapter) {
-          return adapter.fetchNpmData(name);
+        if (pkg.ecosystem === "npm" && "fetchNpmData" in adapter) {
+          return adapter.fetchNpmData(pkg.packageName);
         }
         return adapter.fetch(request);
       },
-      enabled: !!name,
+      enabled: !!pkg.packageName,
       staleTime: STALE_TIME,
       gcTime: GC_TIME,
       retry: 1,
@@ -95,16 +99,16 @@ export function usePackageComparison(packageNames: string[]) {
 
   // Fetch GitHub data for npm packages that have repository URLs
   const githubResults = useQueries({
-    queries: packageNames.map((name, index) => ({
-      queryKey: cacheKeys.githubRepo(repoUrls[name] ?? ""),
+    queries: packages.map((pkg) => ({
+      queryKey: cacheKeys.githubRepo(repoUrls[pkg.packageName] ?? ""),
       queryFn: async () => {
-        const repoUrl = repoUrls[name];
+        const repoUrl = repoUrls[pkg.packageName];
         if (!repoUrl) return null;
         // GitHub data is only relevant for npm packages
-        if (ecosystems[index] !== "npm") return null;
+        if (pkg.ecosystem !== "npm") return null;
         return npmAdapter.fetchGithubData(repoUrl);
       },
-      enabled: !!repoUrls[name] && ecosystems[index] === "npm",
+      enabled: !!repoUrls[pkg.packageName] && pkg.ecosystem === "npm",
       staleTime: STALE_TIME,
       gcTime: GC_TIME,
       retry: 1,
@@ -112,11 +116,11 @@ export function usePackageComparison(packageNames: string[]) {
   });
 
   // Combine data from appropriate ecosystems into PackageStats
-  const packages: PackageStats[] = useMemo(() => {
-    return packageNames
-      .map((_, index) => {
+  const packagesData: PackageStats[] = useMemo(() => {
+    return packages
+      .map((pkg, index) => {
         const packageData = packageResults[index]?.data;
-        const ecosystem = ecosystems[index];
+        const ecosystem = pkg.ecosystem;
 
         if (!packageData) return undefined;
 
@@ -175,7 +179,7 @@ export function usePackageComparison(packageNames: string[]) {
         return stats;
       })
       .filter((pkg): pkg is PackageStats => pkg !== undefined);
-  }, [packageResults, githubResults, packageNames, ecosystems]);
+  }, [packageResults, githubResults, packages, ecosystems]);
 
   const isLoading = packageResults.some((result) => result.isLoading);
   const isError = packageResults.some((result) => result.isError);
@@ -251,7 +255,7 @@ export function usePackageComparison(packageNames: string[]) {
     isLoading,
     isError,
     errors,
-    packages,
+    packages: packagesData,
     failedPackages,
     refetchingNpmPackages,
     refetchingGithubPackages,

@@ -8,6 +8,7 @@ import type { ViewMode } from "@/types/views";
 import type { SortCriterion } from "@/types/sort";
 import { EmptyState } from "./EmptyState";
 import { CarouselView, GridView, ListView, TableView } from "./views";
+import type { PackageRequest } from "@/hooks/usePackageComparison";
 
 /**
  * Calculate which metrics each package wins at
@@ -73,8 +74,12 @@ export function PackageComparisonLayout({
   sortCriteria,
   onSortChange,
 }: PackageComparisonLayoutProps) {
-  // Extract package names for data fetching
+  // Extract package names and ecosystems for data fetching
   const packageNames = packageColumns.map((pkg) => pkg.packageName);
+  const packageRequests: PackageRequest[] = packageColumns.map((pkg) => ({
+    packageName: pkg.packageName,
+    ecosystem: pkg.ecosystem,
+  }));
 
   // Fetch package data
   const {
@@ -87,7 +92,7 @@ export function PackageComparisonLayout({
     refetchGithubData,
     refetchingPackages,
     refetchPackage,
-  } = usePackageComparison(packageNames);
+  } = usePackageComparison(packageRequests);
 
   // Track which packages we've already removed to avoid duplicate notifications
   const removedPackagesRef = useRef<Set<string>>(new Set());
