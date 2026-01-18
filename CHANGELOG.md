@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/ExaDev/pickage/compare/v1.10.0...v1.11.0) (2026-01-18)
+
+### Features
+
+- **ui:** implement unified registry section with aligned rows across ecosystems ([a64ae47](https://github.com/ExaDev/pickage/commit/a64ae47b604aa36ea77e440ee086d6014ef8f68a))
+- **ui:** implement unified RegistrySection with subgrid-based row alignment ([c6fe9bb](https://github.com/ExaDev/pickage/commit/c6fe9bb6c185f72613c3798762c574da39466989))
+
 # [1.10.0](https://github.com/ExaDev/pickage/compare/v1.9.0...v1.10.0) (2026-01-18)
 
 ### Bug Fixes
