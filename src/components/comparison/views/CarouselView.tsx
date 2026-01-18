@@ -4,8 +4,7 @@ import {
   HeaderSection,
   NpmsScoresSection,
   ComparisonResultsSection,
-  NpmRegistrySection,
-  PyPIRegistrySection,
+  RegistrySection,
   GitHubSection,
   ReadmeSection,
 } from "../sections";
@@ -50,29 +49,24 @@ const GRID_ROWS = {
   comparison: {
     badges: 1, // Winner badges
   },
-  // npm Registry section rows
-  npm: {
-    title: 1,
+  // Unified Registry section rows (all possible rows across both ecosystems)
+  registry: {
+    title: 1, // Section header
+    // npm-specific rows
     downloads: 1,
     dependents: 1,
-    license: 1,
-    dependencies: 1,
-    devDeps: 1,
-    peerDeps: 1,
-    keywords: 1,
-    author: 1,
-    maintainers: 1,
-  },
-  // PyPI Registry section rows
-  pypi: {
-    title: 1,
+    // PyPI-specific rows
     requiresPython: 1,
-    license: 1,
-    dependencies: 1,
     uploads: 1,
     lastUpload: 1,
-    author: 1,
     classifiers: 1,
+    // Shared rows (both ecosystems) - these align!
+    license: 1,
+    dependencies: 1,
+    author: 1,
+    // npm-specific rows
+    keywords: 1,
+    maintainers: 1,
   },
   // GitHub section rows
   github: {
@@ -96,14 +90,13 @@ const SECTION_ROW_COUNTS = {
   header: Object.keys(GRID_ROWS.header).length,
   scores: Object.keys(GRID_ROWS.scores).length,
   comparison: Object.keys(GRID_ROWS.comparison).length,
-  npm: Object.keys(GRID_ROWS.npm).length,
-  pypi: Object.keys(GRID_ROWS.pypi).length,
+  registry: Object.keys(GRID_ROWS.registry).length,
   github: Object.keys(GRID_ROWS.github).length,
 };
 
 /**
  * Calculate section positions dynamically based on package data.
- * Each package column may have different sections (npm, pypi, or both).
+ * Unified registry section always shown for alignment across ecosystems.
  */
 function calculateSectionPositions(packageStats: PackageStats | null) {
   const positions: Record<string, number> = {
@@ -122,17 +115,9 @@ function calculateSectionPositions(packageStats: PackageStats | null) {
   positions.comparison = currentRow;
   currentRow += SECTION_ROW_COUNTS.comparison;
 
-  // npm Registry section (conditional)
-  if (packageStats?.npm) {
-    positions.npm = currentRow;
-    currentRow += SECTION_ROW_COUNTS.npm;
-  }
-
-  // PyPI Registry section (conditional)
-  if (packageStats?.pypi) {
-    positions.pypi = currentRow;
-    currentRow += SECTION_ROW_COUNTS.pypi;
-  }
+  // Unified Registry section (always shown - ecosystem-specific rows conditionally render)
+  positions.registry = currentRow;
+  currentRow += SECTION_ROW_COUNTS.registry;
 
   // GitHub section (always shown)
   positions.github = currentRow;
@@ -306,43 +291,23 @@ export function CarouselView({
                   />
                 </Box>
 
-                {/* npm Registry Section */}
-                {packageStats?.npm && (
-                  <Box
-                    style={{
-                      gridRow: `${String(sectionPositions.npm)} / span ${String(SECTION_ROW_COUNTS.npm)}`,
-                      display: "grid",
-                      gridTemplateRows: "subgrid",
+                {/* Unified Registry Section - rows align across ecosystems */}
+                <Box
+                  style={{
+                    gridRow: `${String(sectionPositions.registry)} / span ${String(SECTION_ROW_COUNTS.registry)}`,
+                    display: "grid",
+                    gridTemplateRows: "subgrid",
+                  }}
+                >
+                  <RegistrySection
+                    packageStats={packageStats}
+                    isLoading={isLoading}
+                    isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
+                    onRefreshNpm={() => {
+                      onRefreshNpm(pkg.packageName);
                     }}
-                  >
-                    <NpmRegistrySection
-                      packageStats={packageStats}
-                      isLoading={isLoading}
-                      isRefetchingNpm={refetchingNpmPackages[pkg.packageName]}
-                      onRefreshNpm={() => {
-                        onRefreshNpm(pkg.packageName);
-                      }}
-                      rowCount={SECTION_ROW_COUNTS.npm}
-                    />
-                  </Box>
-                )}
-
-                {/* PyPI Registry Section */}
-                {packageStats?.pypi && (
-                  <Box
-                    style={{
-                      gridRow: `${String(sectionPositions.pypi)} / span ${String(SECTION_ROW_COUNTS.pypi)}`,
-                      display: "grid",
-                      gridTemplateRows: "subgrid",
-                    }}
-                  >
-                    <PyPIRegistrySection
-                      packageStats={packageStats}
-                      isLoading={isLoading}
-                      rowCount={SECTION_ROW_COUNTS.pypi}
-                    />
-                  </Box>
-                )}
+                  />
+                </Box>
 
                 {/* GitHub Section */}
                 <Box
