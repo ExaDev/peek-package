@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/ExaDev/pickage/compare/v1.8.1...v1.8.2) (2026-01-18)
+
+### Bug Fixes
+
+- Add @semantic-release/npm plugin to update package.json version ([e2a29d9](https://github.com/ExaDev/pickage/commit/e2a29d940879c0ab94a162f73290eb4f30e9af53))
+- Update package version to 1.8.1 to match latest release ([fb5b081](https://github.com/ExaDev/pickage/commit/fb5b081e682dccfa36aeb8510b3ee8d8202cea7d))
+
 ## [1.8.1](https://github.com/ExaDev/pickage/compare/v1.8.0...v1.8.1) (2026-01-18)
 
 ### Bug Fixes
