@@ -1,5 +1,5 @@
 import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect, useRef } from "react";
 import { NpmAdapter } from "@/adapters/npm";
 import { PyPiAdapter } from "@/adapters/pypi";
 import type { PickageRequest, PackageStats } from "@/types/adapter";
@@ -185,6 +185,50 @@ export function usePackageComparison(packages: PackageRequest[]) {
       })
       .filter((pkg): pkg is PackageStats => pkg !== undefined);
   }, [packageResults, githubResults, packages, ecosystems]);
+
+  // Normalize URL to use canonical names from PyPI
+  // When user visits /?packages=pypi:django, redirect to /?packages=pypi:Django
+  const normalizedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (packagesData.length === 0) return;
+
+    let needsUpdate = false;
+    const urlPackages: Array<{ ecosystem: "npm" | "pypi"; name: string }> = [];
+
+    packagesData.forEach((stats, index) => {
+      const originalName = packages[index].packageName;
+      const canonicalName = stats.name;
+      const ecosystem = ecosystems[index];
+
+      // Use canonical name if different from original
+      if (originalName !== canonicalName) {
+        if (!normalizedRef.current.has(`${ecosystem}:${originalName}`)) {
+          normalizedRef.current.add(`${ecosystem}:${originalName}`);
+          needsUpdate = true;
+        }
+        urlPackages.push({ ecosystem, name: canonicalName });
+      } else {
+        urlPackages.push({ ecosystem, name: originalName });
+      }
+    });
+
+    if (needsUpdate) {
+      // Get current sort criteria from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const sortParam = urlParams.get("sort");
+
+      // Update URL with canonical names (use replaceState to not add history entry)
+      const params: string[] = [];
+      params.push(`packages=${urlPackages.map((p) => `${p.ecosystem}:${p.name}`).join(",")}`);
+      if (sortParam) {
+        params.push(`sort=${sortParam}`);
+      }
+
+      const { origin, pathname } = window.location;
+      const newUrl = `${origin}${pathname}?${params.join("&")}`;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [packagesData, packages, ecosystems]);
 
   const isLoading = packageResults.some((result) => result.isLoading);
   const isError = packageResults.some((result) => result.isError);
