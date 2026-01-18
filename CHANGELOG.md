@@ -1,3 +1,9 @@
+# [1.7.0](https://github.com/ExaDev/peek-package/compare/v1.6.2...v1.7.0) (2026-01-18)
+
+### Features
+
+- Add multi-ecosystem package support and dependency file import ([6431358](https://github.com/ExaDev/peek-package/commit/6431358e2e1e27c32cf8c6f1171b85dea2d31d44)), closes [#5](https://github.com/ExaDev/peek-package/issues/5)
+
 ## [1.6.2](https://github.com/ExaDev/peek-package/compare/v1.6.1...v1.6.2) (2026-01-18)
 
 ## [1.6.1](https://github.com/ExaDev/peek-package/compare/v1.6.0...v1.6.1) (2026-01-18)
