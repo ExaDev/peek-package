@@ -1,21 +1,18 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("URL Packages Parameter", () => {
-  test("should load pypi:django from URL parameter", async ({ page }) => {
-    // Navigate directly to the URL with pypi:django package
-    await page.goto("/?msw=true&packages=pypi:django");
+  test("should load pypi:django from URL parameter (real API)", async ({
+    page,
+  }) => {
+    // Navigate WITHOUT msw=true to test real API calls
+    // This verifies ecosystem prefix actually routes to correct API
+    await page.goto("/?packages=pypi:django");
 
     // Wait for page to load and packages to render
     await page.waitForTimeout(2000);
 
-    // Django package card should be visible (looking for the package name in card header)
-    await expect(page.locator("text=django").first()).toBeVisible({
-      timeout: 5000,
-    });
-
-    // Should see npms.io Scores section (even though it's a PyPI package)
-    // This indicates the comparison view loaded successfully
-    await expect(page.locator('text="npms.io Scores"').first()).toBeVisible({
+    // Django package card should be visible
+    await expect(page.getByText("django").first()).toBeVisible({
       timeout: 5000,
     });
   });

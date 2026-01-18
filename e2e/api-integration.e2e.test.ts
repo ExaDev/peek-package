@@ -44,4 +44,15 @@ test.describe("API Integration (Real API)", () => {
     // Page should still be functional
     await expect(input).toBeVisible();
   });
+
+  test("should fetch real package data from PyPI", async ({ page }) => {
+    // Navigate directly with PyPI package in URL
+    // This tests the ecosystem prefix routing
+    await page.goto("/?packages=pypi:django");
+
+    // Should show real Django data from PyPI (not npm)
+    await expect(page.getByText("django", { exact: true })).toBeVisible({
+      timeout: 30000,
+    });
+  });
 });
