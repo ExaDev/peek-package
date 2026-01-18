@@ -37,21 +37,26 @@ interface MetricRowProps {
 }
 
 function MetricRow({ label, value, tooltip }: MetricRowProps) {
+  const hasValue = value !== null && value !== undefined;
+
   return (
     <Group justify="space-between" wrap="nowrap" mb={0}>
       <Text size="xs" c="dimmed">
         {label}
       </Text>
-      <Tooltip
-        label={
-          tooltip ||
-          (typeof value === "string" ? value : String(value ?? "N/A"))
-        }
-      >
+      {hasValue ? (
+        <Tooltip
+          label={tooltip || (typeof value === "string" ? value : String(value))}
+        >
+          <Text size="sm" fw={500}>
+            {typeof value === "number" ? formatNumber(value) : value}
+          </Text>
+        </Tooltip>
+      ) : (
         <Text size="sm" fw={500}>
-          {typeof value === "number" ? formatNumber(value) : (value ?? "N/A")}
+          &nbsp;
         </Text>
-      </Tooltip>
+      )}
     </Group>
   );
 }
@@ -164,51 +169,43 @@ export function RegistrySection({
           <Text size="xs" c="dimmed">
             Last Upload
           </Text>
-          <Tooltip
-            label={
-              hasPyPI && packageStats?.pypi?.upload_time
-                ? new Date(packageStats.pypi.upload_time).toLocaleString()
-                : "N/A"
-            }
-          >
-            <Text size="sm">
-              {hasPyPI && packageStats?.pypi?.upload_time
-                ? formatRelativeDate(packageStats.pypi.upload_time)
-                : "N/A"}
-            </Text>
-          </Tooltip>
+          {hasPyPI && packageStats?.pypi?.upload_time ? (
+            <Tooltip
+              label={new Date(packageStats.pypi.upload_time).toLocaleString()}
+            >
+              <Text size="sm">
+                {formatRelativeDate(packageStats.pypi.upload_time)}
+              </Text>
+            </Tooltip>
+          ) : (
+            <Text size="sm">&nbsp;</Text>
+          )}
         </Group>
       </Box>
 
       {/* Row 7: PyPI-specific: Classifiers */}
       <Box py="xs" style={contentPadding}>
-        <Text size="xs" c="dimmed" mb={4}>
-          Classifiers
-          {hasPyPI &&
-            packageStats?.pypi?.classifiers &&
-            packageStats.pypi.classifiers.length > 0 &&
-            ` (${String(packageStats.pypi.classifiers.length)})`}
-        </Text>
         {hasPyPI &&
         packageStats?.pypi?.classifiers &&
         packageStats.pypi.classifiers.length > 0 ? (
-          <Group gap={4}>
-            {packageStats.pypi.classifiers.slice(0, 5).map((c) => (
-              <Badge key={c} size="xs" variant="outline">
-                {c.replace(/^[^:]+::\s*/, "")}
-              </Badge>
-            ))}
-            {packageStats.pypi.classifiers.length > 5 && (
-              <Badge size="xs" variant="light">
-                +{String(packageStats.pypi.classifiers.length - 5)} more
-              </Badge>
-            )}
-          </Group>
-        ) : (
-          <Text size="sm" c="dimmed">
-            N/A
-          </Text>
-        )}
+          <>
+            <Text size="xs" c="dimmed" mb={4}>
+              Classifiers ({String(packageStats.pypi.classifiers.length)})
+            </Text>
+            <Group gap={4}>
+              {packageStats.pypi.classifiers.slice(0, 5).map((c) => (
+                <Badge key={c} size="xs" variant="outline">
+                  {c.replace(/^[^:]+::\s*/, "")}
+                </Badge>
+              ))}
+              {packageStats.pypi.classifiers.length > 5 && (
+                <Badge size="xs" variant="light">
+                  +{String(packageStats.pypi.classifiers.length - 5)} more
+                </Badge>
+              )}
+            </Group>
+          </>
+        ) : null}
       </Box>
 
       {/* Row 8: Shared: License */}
@@ -240,60 +237,52 @@ export function RegistrySection({
 
       {/* Row 11: npm-specific: Keywords */}
       <Box py="xs" style={contentPadding}>
-        <Text size="xs" c="dimmed" mb={4}>
-          Keywords
-        </Text>
         {hasNpm &&
         packageStats?.npm?.keywords &&
         packageStats.npm.keywords.length > 0 ? (
-          <Group gap={4}>
-            {packageStats.npm.keywords.slice(0, 5).map((kw) => (
-              <Badge key={kw} size="xs" variant="outline">
-                {kw}
-              </Badge>
-            ))}
-            {packageStats.npm.keywords.length > 5 && (
-              <Badge size="xs" variant="light">
-                +{String(packageStats.npm.keywords.length - 5)} more
-              </Badge>
-            )}
-          </Group>
-        ) : (
-          <Text size="sm" c="dimmed">
-            N/A
-          </Text>
-        )}
+          <>
+            <Text size="xs" c="dimmed" mb={4}>
+              Keywords
+            </Text>
+            <Group gap={4}>
+              {packageStats.npm.keywords.slice(0, 5).map((kw) => (
+                <Badge key={kw} size="xs" variant="outline">
+                  {kw}
+                </Badge>
+              ))}
+              {packageStats.npm.keywords.length > 5 && (
+                <Badge size="xs" variant="light">
+                  +{String(packageStats.npm.keywords.length - 5)} more
+                </Badge>
+              )}
+            </Group>
+          </>
+        ) : null}
       </Box>
 
       {/* Row 12: npm-specific: Maintainers */}
       <Box py="xs" style={contentPadding}>
-        <Text size="xs" c="dimmed" mb={4}>
-          Maintainers
-          {hasNpm &&
-            packageStats?.maintainers &&
-            packageStats.maintainers.length > 0 &&
-            ` (${String(packageStats.maintainers.length)})`}
-        </Text>
         {hasNpm &&
         packageStats?.maintainers &&
         packageStats.maintainers.length > 0 ? (
-          <Group gap={4}>
-            {packageStats.maintainers.slice(0, 3).map((m, i) => (
-              <Badge key={i} size="xs" variant="outline">
-                {typeof m === "string" ? m : m.name}
-              </Badge>
-            ))}
-            {packageStats.maintainers.length > 3 && (
-              <Badge size="xs" variant="light">
-                +{String(packageStats.maintainers.length - 3)} more
-              </Badge>
-            )}
-          </Group>
-        ) : (
-          <Text size="sm" c="dimmed">
-            N/A
-          </Text>
-        )}
+          <>
+            <Text size="xs" c="dimmed" mb={4}>
+              Maintainers ({String(packageStats.maintainers.length)})
+            </Text>
+            <Group gap={4}>
+              {packageStats.maintainers.slice(0, 3).map((m, i) => (
+                <Badge key={i} size="xs" variant="outline">
+                  {typeof m === "string" ? m : m.name}
+                </Badge>
+              ))}
+              {packageStats.maintainers.length > 3 && (
+                <Badge size="xs" variant="light">
+                  +{String(packageStats.maintainers.length - 3)} more
+                </Badge>
+              )}
+            </Group>
+          </>
+        ) : null}
       </Box>
     </Box>
   );
