@@ -214,7 +214,10 @@ export function TableView({
                 </Table.Td>
                 {packages.map((pkg) => {
                   const stats =
-                    packagesData.find((p) => p.name === pkg.packageName) ?? null;
+                    packagesData.find(
+                      (p) =>
+                        p.name.toLowerCase() === pkg.packageName.toLowerCase(),
+                    ) ?? null;
 
                   // Extract numeric value for winner check and score color
                   let numericValue: number | undefined;

@@ -23,7 +23,9 @@ export function GridView({
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
         {packages.map((pkg) => {
           const packageStats =
-            packagesData.find((p) => p.name === pkg.packageName) ?? null;
+            packagesData.find(
+              (p) => p.name.toLowerCase() === pkg.packageName.toLowerCase(),
+            ) ?? null;
 
           return (
             <PackageColumn

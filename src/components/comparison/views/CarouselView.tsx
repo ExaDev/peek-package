@@ -171,7 +171,10 @@ export function CarouselView({
       return positions.github + SECTION_ROW_COUNTS.github;
     }),
     // Minimum: header + comparison + github (for packages with no data yet)
-    1 + SECTION_ROW_COUNTS.header + SECTION_ROW_COUNTS.comparison + SECTION_ROW_COUNTS.github
+    1 +
+      SECTION_ROW_COUNTS.header +
+      SECTION_ROW_COUNTS.comparison +
+      SECTION_ROW_COUNTS.github,
   );
 
   const columnWidth = isMobile ? 320 : 450;
@@ -217,7 +220,9 @@ export function CarouselView({
 
           {packages.map((pkg, colIndex) => {
             const packageStats =
-              packagesData.find((p) => p.name === pkg.packageName) ?? null;
+              packagesData.find(
+                (p) => p.name.toLowerCase() === pkg.packageName.toLowerCase(),
+              ) ?? null;
 
             const packageWinners = winnerMetrics[pkg.packageName] ?? {};
             const pkgWinnerMetrics: WinnerMetrics = {
@@ -381,7 +386,9 @@ export function CarouselView({
 
           {packages.map((pkg, colIndex) => {
             const packageStats =
-              packagesData.find((p) => p.name === pkg.packageName) ?? null;
+              packagesData.find(
+                (p) => p.name.toLowerCase() === pkg.packageName.toLowerCase(),
+              ) ?? null;
 
             return (
               <Card
