@@ -140,6 +140,10 @@ export function GitHubSection({
     );
   }
 
+  // Check for GitHub API error
+  const hasError = packageStats?.github?.error;
+  const errorMessage = packageStats?.github?.errorMessage;
+
   return (
     <Box
       style={{
@@ -172,117 +176,135 @@ export function GitHubSection({
         )}
       </Group>
 
-      {/* Row 2: Stars */}
-      <MetricRow label="Stars" value={formatNumber(packageStats?.stars)} />
+      {/* If there's an error, show error message instead of metrics */}
+      {hasError ? (
+        <>
+          <Box px={px} py={py}>
+            <Text size="sm" c="red">
+              {errorMessage}
+            </Text>
+          </Box>
+          {/* Fill remaining rows with empty boxes to maintain grid structure */}
+          {Array.from({ length: rowCount - 2 }).map((_, i) => (
+            <Box key={i} px={px} py={py} />
+          ))}
+        </>
+      ) : (
+        <>
+          {/* Row 2: Stars */}
+          <MetricRow label="Stars" value={formatNumber(packageStats?.stars)} />
 
-      {/* Row 3: Forks */}
-      <MetricRow label="Forks" value={formatNumber(packageStats?.forks)} />
+          {/* Row 3: Forks */}
+          <MetricRow label="Forks" value={formatNumber(packageStats?.forks)} />
 
-      {/* Row 4: Open Issues */}
-      <MetricRow
-        label="Open Issues"
-        value={formatNumber(packageStats?.openIssues)}
-      />
+          {/* Row 4: Open Issues */}
+          <MetricRow
+            label="Open Issues"
+            value={formatNumber(packageStats?.openIssues)}
+          />
 
-      {/* Row 5: Watchers */}
-      <MetricRow
-        label="Watchers"
-        value={formatNumber(packageStats?.github?.subscribers)}
-      />
+          {/* Row 5: Watchers */}
+          <MetricRow
+            label="Watchers"
+            value={formatNumber(packageStats?.github?.subscribers)}
+          />
 
-      {/* Row 6: Last Push */}
-      <MetricRow
-        label="Last Push"
-        value={formatRelativeDate(packageStats?.github?.pushedAt)}
-        tooltip={formatDate(packageStats?.github?.pushedAt)}
-      />
+          {/* Row 6: Last Push */}
+          <MetricRow
+            label="Last Push"
+            value={formatRelativeDate(packageStats?.github?.pushedAt)}
+            tooltip={formatDate(packageStats?.github?.pushedAt)}
+          />
 
-      {/* Row 7: Created */}
-      <MetricRow
-        label="Created"
-        value={formatDate(packageStats?.github?.createdAt)}
-      />
+          {/* Row 7: Created */}
+          <MetricRow
+            label="Created"
+            value={formatDate(packageStats?.github?.createdAt)}
+          />
 
-      {/* Row 8: Last Updated */}
-      <MetricRow
-        label="Last Updated"
-        value={formatRelativeDate(packageStats?.github?.updatedAt)}
-        tooltip={formatDate(packageStats?.github?.updatedAt)}
-      />
+          {/* Row 8: Last Updated */}
+          <MetricRow
+            label="Last Updated"
+            value={formatRelativeDate(packageStats?.github?.updatedAt)}
+            tooltip={formatDate(packageStats?.github?.updatedAt)}
+          />
 
-      {/* Row 9: Repo Size */}
-      <MetricRow
-        label="Repo Size"
-        value={formatSize(packageStats?.github?.size)}
-      />
+          {/* Row 9: Repo Size */}
+          <MetricRow
+            label="Repo Size"
+            value={formatSize(packageStats?.github?.size)}
+          />
 
-      {/* Row 10: Default Branch */}
-      <MetricRow
-        label="Default Branch"
-        value={packageStats?.github?.defaultBranch ?? "N/A"}
-      />
+          {/* Row 10: Default Branch */}
+          <MetricRow
+            label="Default Branch"
+            value={packageStats?.github?.defaultBranch ?? "N/A"}
+          />
 
-      {/* Row 11: Contributors */}
-      <Box px={px} py={py}>
-        <Group justify="space-between" mb={4}>
-          <Text size="xs" c="dimmed">
-            Top Contributors ({String(packageStats?.contributors?.length ?? 0)})
-          </Text>
-          {(hasContributorOverflow || contributorsExpanded) && (
-            <UnstyledButton
-              onClick={() => {
-                setContributorsExpanded(!contributorsExpanded);
+          {/* Row 11: Contributors */}
+          <Box px={px} py={py}>
+            <Group justify="space-between" mb={4}>
+              <Text size="xs" c="dimmed">
+                Top Contributors (
+                {String(packageStats?.contributors?.length ?? 0)})
+              </Text>
+              {(hasContributorOverflow || contributorsExpanded) && (
+                <UnstyledButton
+                  onClick={() => {
+                    setContributorsExpanded(!contributorsExpanded);
+                  }}
+                >
+                  <Group gap={2}>
+                    <Text size="xs" c="blue">
+                      {contributorsExpanded ? "Show less" : "Show all"}
+                    </Text>
+                    {contributorsExpanded ? (
+                      <IconChevronUp
+                        size={14}
+                        color="var(--mantine-color-blue-6)"
+                      />
+                    ) : (
+                      <IconChevronDown
+                        size={14}
+                        color="var(--mantine-color-blue-6)"
+                      />
+                    )}
+                  </Group>
+                </UnstyledButton>
+              )}
+            </Group>
+            <Box
+              ref={contributorsRef}
+              style={{
+                overflow: "hidden",
+                maxHeight: contributorsExpanded ? "500px" : "32px",
+                transition: "max-height 200ms ease-in-out",
               }}
             >
-              <Group gap={2}>
-                <Text size="xs" c="blue">
-                  {contributorsExpanded ? "Show less" : "Show all"}
-                </Text>
-                {contributorsExpanded ? (
-                  <IconChevronUp
-                    size={14}
-                    color="var(--mantine-color-blue-6)"
-                  />
-                ) : (
-                  <IconChevronDown
-                    size={14}
-                    color="var(--mantine-color-blue-6)"
-                  />
-                )}
+              <Group gap="xs" wrap="wrap">
+                {packageStats?.contributors?.map((c) => (
+                  <Tooltip
+                    key={c.username}
+                    label={`${c.username} (${String(c.commitsCount)} commits)`}
+                  >
+                    <Anchor
+                      href={`https://github.com/${c.username}`}
+                      target="_blank"
+                    >
+                      <Avatar
+                        src={`https://github.com/${c.username}.png?size=32`}
+                        size="sm"
+                        radius="xl"
+                        alt={c.username}
+                      />
+                    </Anchor>
+                  </Tooltip>
+                ))}
               </Group>
-            </UnstyledButton>
-          )}
-        </Group>
-        <Box
-          ref={contributorsRef}
-          style={{
-            overflow: "hidden",
-            maxHeight: contributorsExpanded ? "500px" : "32px",
-            transition: "max-height 200ms ease-in-out",
-          }}
-        >
-          <Group gap="xs" wrap="wrap">
-            {packageStats?.contributors?.map((c) => (
-              <Tooltip
-                key={c.username}
-                label={`${c.username} (${String(c.commitsCount)} commits)`}
-              >
-                <Anchor
-                  href={`https://github.com/${c.username}`}
-                  target="_blank"
-                >
-                  <Avatar
-                    src={`https://github.com/${c.username}.png?size=32`}
-                    size="sm"
-                    radius="xl"
-                    alt={c.username}
-                  />
-                </Anchor>
-              </Tooltip>
-            ))}
-          </Group>
-        </Box>
-      </Box>
+            </Box>
+          </Box>
+        </>
+      )}
     </Box>
   );
 }

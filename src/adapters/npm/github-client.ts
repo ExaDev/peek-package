@@ -94,9 +94,15 @@ export class GithubClient {
   /**
    * Fetch repository information
    * @param repoUrl GitHub repository URL
-   * @returns Repository metadata, or null if fetch fails (rate limit, not found, etc.)
+   * @returns Repository metadata with error info, or null if invalid URL
    */
-  async fetchRepository(repoUrl: string): Promise<GithubRepoResponse | null> {
+  async fetchRepository(repoUrl: string): Promise<
+    | (GithubRepoResponse & {
+        error?: "rate_limit" | "not_found" | "network_error";
+        errorMessage?: string;
+      })
+    | null
+  > {
     const parsed = this.parseRepoUrl(repoUrl);
     if (!parsed) {
       console.warn(`Invalid GitHub repository URL: ${repoUrl}`);
@@ -111,21 +117,49 @@ export class GithubClient {
 
       return response.data as GithubRepoResponse;
     } catch (error: unknown) {
-      // Log warning but don't throw - gracefully degrade
+      // Return error information instead of just null
       if (isOctokitError(error)) {
         if (error.status === 404) {
           console.warn(`Repository not found: ${parsed.owner}/${parsed.repo}`);
+          return {
+            error: "not_found",
+            errorMessage: "Repository not found",
+          } as GithubRepoResponse & {
+            error: "not_found";
+            errorMessage: string;
+          };
         } else if (error.status === 403) {
           console.warn(
             "GitHub API rate limit exceeded. Consider providing a GitHub token in settings.",
           );
+          return {
+            error: "rate_limit",
+            errorMessage:
+              "GitHub API rate limit exceeded. Add a token to increase limit.",
+          } as GithubRepoResponse & {
+            error: "rate_limit";
+            errorMessage: string;
+          };
         } else {
           console.warn("GitHub API error:", error.status, error.message);
+          return {
+            error: "network_error",
+            errorMessage: `GitHub API error: ${error.message}`,
+          } as GithubRepoResponse & {
+            error: "network_error";
+            errorMessage: string;
+          };
         }
       } else {
         console.warn("GitHub API error:", error);
+        return {
+          error: "network_error",
+          errorMessage: "Failed to fetch GitHub data",
+        } as GithubRepoResponse & {
+          error: "network_error";
+          errorMessage: string;
+        };
       }
-      return null;
     }
   }
 

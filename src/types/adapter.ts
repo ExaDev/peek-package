@@ -121,6 +121,9 @@ export interface GithubSpecificStats {
   homepageUrl?: string;
   language?: string | null;
   size?: number;
+  // Error information when GitHub API fails
+  error?: "rate_limit" | "not_found" | "network_error" | null;
+  errorMessage?: string;
 }
 
 /**

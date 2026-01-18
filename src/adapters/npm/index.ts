@@ -207,6 +207,23 @@ export class NpmAdapter implements EcosystemAdapter {
       return null;
     }
 
+    // Check if error was returned instead of repo data
+    if (githubRepo.error) {
+      return {
+        github: {
+          stars: 0,
+          forks: 0,
+          openIssues: 0,
+          subscribers: 0,
+          error: githubRepo.error,
+          errorMessage: githubRepo.errorMessage,
+        },
+        stars: 0,
+        forks: 0,
+        openIssues: 0,
+      };
+    }
+
     const github: GithubSpecificStats = {
       stars: githubRepo.stargazers_count,
       forks: githubRepo.forks_count,
