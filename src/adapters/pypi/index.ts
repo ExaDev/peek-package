@@ -66,6 +66,7 @@ export class PyPiAdapter implements EcosystemAdapter {
         info.project_urls["Repository"] ||
         info.project_urls["repository"] ||
         info.project_urls["Source Code"] ||
+        info.project_urls["Source"] ||
         info.project_urls["source"] ||
         info.project_urls["Homepage"] ||
         null;

@@ -92,31 +92,27 @@ export function usePackageComparison(packages: PackageRequest[]) {
   });
 
   // Create a map of package name to repository URL for GitHub queries
-  // Only for npm packages
+  // Works for any ecosystem that has a repository URL
   const repoUrls = useMemo(() => {
     const urls: Record<string, string | null> = {};
     packageResults.forEach((result, index) => {
-      if (ecosystems[index] === "npm" && result.data?.repository) {
-        urls[packageNames[index]] = result.data.repository;
-      } else {
-        urls[packageNames[index]] = null;
-      }
+      // Extract repository URL if available, regardless of ecosystem
+      urls[packageNames[index]] = result.data?.repository ?? null;
     });
     return urls;
-  }, [packageResults, packageNames, ecosystems]);
+  }, [packageResults, packageNames]);
 
-  // Fetch GitHub data for npm packages that have repository URLs
+  // Fetch GitHub data for all packages that have repository URLs
   const githubResults = useQueries({
     queries: packages.map((pkg) => ({
       queryKey: cacheKeys.githubRepo(repoUrls[pkg.packageName] ?? ""),
       queryFn: async () => {
         const repoUrl = repoUrls[pkg.packageName];
         if (!repoUrl) return null;
-        // GitHub data is only relevant for npm packages
-        if (pkg.ecosystem !== "npm") return null;
+        // Use npm adapter's GitHub client (ecosystem-agnostic)
         return npmAdapter.fetchGithubData(repoUrl);
       },
-      enabled: !!repoUrls[pkg.packageName] && pkg.ecosystem === "npm",
+      enabled: !!repoUrls[pkg.packageName],
       staleTime: STALE_TIME,
       gcTime: GC_TIME,
       retry: 1,
@@ -162,18 +158,12 @@ export function usePackageComparison(packages: PackageRequest[]) {
           stats.contributors = packageData.contributors;
           stats.evaluation = packageData.evaluation;
 
-          // Add GitHub data from API if available
-          const githubData = githubResults[index]?.data;
-          if (githubData) {
-            stats.stars = githubData.stars;
-            stats.forks = githubData.forks;
-            stats.openIssues = githubData.openIssues;
-            stats.github = githubData.github;
-          } else if (
+          // Fall back to GitHub data from npms.io if real-time API data not available
+          if (
             "githubFromNpms" in packageData &&
-            packageData.githubFromNpms
+            packageData.githubFromNpms &&
+            !githubResults[index]?.data
           ) {
-            // Fall back to GitHub data from npms.io
             stats.stars = packageData.githubFromNpms.stars;
             stats.forks = packageData.githubFromNpms.forks;
             stats.openIssues = packageData.githubFromNpms.openIssues;
@@ -189,6 +179,15 @@ export function usePackageComparison(packages: PackageRequest[]) {
         // Add pypi-specific data
         if ("pypi" in packageData && packageData.pypi) {
           stats.pypi = packageData.pypi;
+        }
+
+        // Add GitHub data from API if available (works for any ecosystem)
+        const githubData = githubResults[index]?.data;
+        if (githubData) {
+          stats.stars = githubData.stars;
+          stats.forks = githubData.forks;
+          stats.openIssues = githubData.openIssues;
+          stats.github = githubData.github;
         }
 
         return stats;
