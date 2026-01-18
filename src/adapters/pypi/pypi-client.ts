@@ -1,12 +1,19 @@
 /**
  * PyPI API client for fetching Python package information
- * Uses the JSON API at https://pypi.org/pypi/ and warehouse API for search
+ * Uses the JSON API at https://pypi.org/pypi/
+ * Search functionality uses both full and popular PyPI packages with fallback
  */
+
+import {
+  pypiPackagesClient,
+  PopularPackage,
+  FullPackage,
+} from "./pypi-packages-client";
 
 export interface PyPiSearchResult {
   name: string;
-  version: string;
-  summary: string;
+  version?: string; // Not available from package list search
+  summary?: string; // Not available from package list search
 }
 
 export interface PyPiPackageData {
@@ -29,7 +36,6 @@ export interface PyPiPackageData {
 
 export class PyPiClient {
   private baseUrl = "https://pypi.org/pypi";
-  private warehouseUrl = "https://warehouse.pypa.io/api";
   private timeout = 10000; // 10 seconds
 
   async fetchPackage(packageName: string): Promise<PyPiPackageData> {
@@ -59,29 +65,24 @@ export class PyPiClient {
     }
   }
 
-  async searchPackages(query: string): Promise<PyPiSearchResult[]> {
-    const url = `${this.warehouseUrl}/search.json?q=${encodeURIComponent(query)}`;
+  /**
+   * Search for PyPI packages using either full or popular dataset
+   * Note: This method now requires the packages array to be passed in
+   * The packages should be fetched from React Query cache via usePyPiPackages()
+   *
+   * @param packages The packages array from React Query (FullPackage[] | PopularPackage[])
+   * @param query Search query string
+   * @returns Array of search results (name only - use fetchPackage() for details)
+   */
+  searchPackages(
+    packages: (FullPackage | PopularPackage)[],
+    query: string,
+  ): PyPiSearchResult[] {
+    const results = pypiPackagesClient.searchPackages(packages, query);
 
-    try {
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(this.timeout),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `PyPI search error: ${String(response.status)} ${response.statusText}`,
-        );
-      }
-
-      const data = (await response.json()) as { projects: PyPiSearchResult[] };
-      return data.projects || [];
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Failed to search PyPI packages: ${error.message}`,
-        );
-      }
-      throw error;
-    }
+    // Return only the name - version and summary require fetchPackage()
+    return results.map((result) => ({
+      name: result.name,
+    }));
   }
 }
