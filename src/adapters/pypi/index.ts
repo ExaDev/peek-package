@@ -103,6 +103,33 @@ export class PyPiAdapter implements EcosystemAdapter {
         ? packageData.urls[0].upload_time_iso_8601
         : null;
 
+    // Parse keywords (comma or space separated string)
+    const keywords = info.keywords
+      ? info.keywords
+          .split(/[,\s]+/)
+          .map((k) => k.trim())
+          .filter((k) => k.length > 0)
+      : [];
+
+    // Extract all project URLs (excluding ones we already use for homepage/repository)
+    const projectUrls: Record<string, string> = {};
+    if (info.project_urls) {
+      for (const [key, value] of Object.entries(info.project_urls)) {
+        // Skip Homepage and Source/Repository as we handle those separately
+        if (
+          ![
+            "Homepage",
+            "Source",
+            "Source Code",
+            "Repository",
+            "repository",
+          ].includes(key)
+        ) {
+          projectUrls[key] = value;
+        }
+      }
+    }
+
     // PyPI-specific stats
     const pypiStats: PyPiSpecificStats = {
       requiresPython: info.requires_python || null,
@@ -111,6 +138,14 @@ export class PyPiAdapter implements EcosystemAdapter {
       classifiers: info.classifiers || [],
       uploads: Object.keys(releases).length,
       upload_time: latestUpload,
+      keywords,
+      maintainer: info.maintainer || null,
+      maintainerEmail: info.maintainer_email || null,
+      platform: info.platform || null,
+      projectUrls,
+      fullDescription: info.description || null,
+      yanked: info.yanked || false,
+      yankedReason: info.yanked_reason || null,
     };
 
     const stats: PackageStats = {
